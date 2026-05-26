@@ -1,0 +1,29 @@
+# Local config (created from config.example.sh)
+config/config.sh
+
+# Runtime artifacts
+logs/
+*.pid
+*.lock
+*.lock.d/
+
+# Secrets (defensive — should never be in the repo to begin with)
+.env
+.env.*
+secrets/
+*.tfvars
+*credentials*
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

@@ -1,0 +1,56 @@
+# Example overnight queue for local-coder.
+#
+# A queue is a flat list of tasks the runner consumes one at a time. Each
+# task gets its own feature branch + commit + PR (depending on which loop
+# script you run).
+#
+# Fields:
+#   id                          unique kebab-case identifier
+#   priority                    P1 | P2 | P3 (informational; not enforced)
+#   category                    free-form label for filtering / reporting
+#   title                       short human-readable label
+#   prompt                      instruction sent to the Claude CLI as TASK_PROMPT
+#   target_repo                 backend | frontend | <whatever your repos are>
+#   estimated_duration_minutes  wall-clock budget estimate
+#   model                       Claude model id (passed through to the CLI)
+
+version: "1"
+
+queue:
+
+  - id: example-readme-typo
+    priority: P3
+    category: documentation
+    title: "Fix typos in README"
+    target_repo: backend
+    estimated_duration_minutes: 5
+    model: claude-opus-4-6
+    prompt: |
+      Read README.md. Identify and fix any typos or grammatical errors.
+      Do not rewrite content — only correct mistakes. Commit with message:
+      [local-coder] docs: fix typos in README
+
+  - id: example-dead-import
+    priority: P2
+    category: code-quality
+    title: "Remove unused imports in src/"
+    target_repo: backend
+    estimated_duration_minutes: 10
+    model: claude-opus-4-6
+    prompt: |
+      Audit src/ for unused imports. For each file with unused imports,
+      remove them. Run the full test suite to confirm nothing broke.
+      Commit with message: [local-coder] chore: remove unused imports
+
+  - id: example-add-test
+    priority: P2
+    category: testing
+    title: "Add a test for the most-touched untested file"
+    target_repo: backend
+    estimated_duration_minutes: 20
+    model: claude-opus-4-6
+    prompt: |
+      Use git log to find files touched in the last 30 commits with no
+      corresponding test file. Pick the one with the most recent commits.
+      Write a single focused test for its main public function. Commit
+      with message: [local-coder] test: cover <file>

@@ -1,0 +1,232 @@
+# Local Coder Task Catalog
+# Defines every automatable task type: prompt template, model, resource limits, schedule.
+#
+# Used by:
+#   trigger.sh --task <id>          on-demand runs
+#   terraform/local-coder.tf        Cloud Scheduler bodies
+#   entrypoint.sh                   reads TASK_TYPE to select model/turns
+#
+# Model guidance:
+#   claude-opus-4-6 — all tasks (sonnet credits exhausted week of 2026-05-12)
+
+version: "1"
+
+defaults:
+  model: claude-opus-4-6
+  max_turns: 50
+  cpu: "4"
+  memory: "8Gi"
+  timeout_seconds: 1800
+  repo: backend
+  branch: dev
+
+tasks:
+
+  # ---- Bugs -------------------------------------------------------------
+
+  - id: bug-fixes
+    name: "Bug Fixes (P0–P3)"
+    description: >
+      Triage open GitHub issues labelled P0, P1, P2, or P3 with label 'bug',
+      implement fixes, run tests, and open PRs.
+    model: claude-opus-4-6
+    max_turns: 60
+    cpu: "4"
+    memory: "8Gi"
+    timeout_seconds: 1800
+    prompt: |
+      Use the GitHub CLI (`gh`) to list open issues labelled 'bug' with priority
+      labels P0, P1, P2, or P3 in this repo. For each issue (start with P0, then P1):
+        1. Read the issue body and comments carefully.
+        2. Locate the relevant code.
+        3. Implement the minimal fix.
+        4. Run the test suite to confirm nothing regressed.
+        5. Commit with message: [local-coder] fix: <short description> (fixes #<issue>)
+      Process as many issues as fit within budget. Do not skip an issue without a comment
+      explaining why. Do NOT touch unrelated code.
+
+  # ---- Test Coverage ----------------------------------------------------
+
+  - id: test-coverage
+    name: "Test Coverage Gaps"
+    description: >
+      Identify untested or under-tested code paths and write pytest / Vitest tests
+      covering them.
+    model: claude-opus-4-6
+    max_turns: 60
+    cpu: "4"
+    memory: "8Gi"
+    timeout_seconds: 1800
+    prompt: |
+      Audit test coverage in this repo:
+        1. For the backend: run `pytest --co -q` to list all tests, then identify
+           service files and route files that have no corresponding test file.
+           Prioritise: new routes added in the last 30 git commits, services with
+           complex branching logic, and any file touched by a recent bug fix.
+        2. Write pytest tests for the top 3–5 most critical gaps. Each test must:
+           - Use the existing test patterns (SQLite DB, mock external calls).
+           - Pass with `# Use your project's test setup 
+              pytest --tb=short -q`.
+        3. For the frontend: identify API client functions in src/lib/api/ that have
+           no Vitest test and write tests for the top 2–3 gaps.
+        4. Run all new tests to confirm they pass before committing.
+
+  # ---- Code Quality -----------------------------------------------------
+
+  - id: lint-sweep
+    name: "Code Quality Sweep"
+    description: >
+      Run black, isort, flake8, and mypy on the backend; eslint + prettier on the
+      frontend. Fix auto-fixable issues and flag the rest in a GitHub issue.
+    model: claude-opus-4-6
+    max_turns: 40
+    cpu: "2"
+    memory: "4Gi"
+    timeout_seconds: 900
+    prompt: |
+      Perform a code quality sweep:
+        BACKEND:
+          1. Run `black --check .` and apply fixes: `black .`
+          2. Run `isort --check .` and apply: `isort .`
+          3. Run `python -m flake8 app/ --max-line-length=100 --ignore=E501,W503`
+             and fix any E/W errors that black/isort didn't resolve.
+          4. Remove unused imports that flake8 flagged (F401).
+        FRONTEND:
+          1. Run `npx eslint src/ --fix` to auto-fix lint errors.
+          2. Run `npx prettier --write src/` to normalise formatting.
+        After fixing: run `npm run build` to confirm the frontend still compiles,
+        and run the backend test suite to confirm nothing broke.
+        Commit only if all checks pass.
+
+  # ---- Documentation ----------------------------------------------------
+
+  - id: docstrings
+    name: "Docstring & API Docs Generation"
+    description: >
+      Add Google-style docstrings to Python functions/classes that lack them,
+      and update openapi descriptions where missing.
+    model: claude-opus-4-6
+    max_turns: 50
+    cpu: "2"
+    memory: "4Gi"
+    timeout_seconds: 1200
+    prompt: |
+      Add documentation to undocumented code:
+        1. Find Python functions and classes in app/routes/ and app/services/
+           that have no docstring (use grep or ast).
+        2. Add Google-style docstrings to the top 15–20 most important ones.
+           Include: one-line summary, Args, Returns, Raises sections where relevant.
+        3. For FastAPI routes missing a `description=` or `summary=` parameter in
+           their decorator, add one.
+        4. Do NOT change any logic — documentation only.
+        5. Run `python -m py_compile app/**/*.py` to confirm no syntax errors.
+
+  # ---- Dependencies -----------------------------------------------------
+
+  - id: deps-audit
+    name: "Dependency Audit & Security Scan"
+    description: >
+      Check for outdated or vulnerable dependencies; apply safe minor/patch
+      updates; create an issue listing anything that needs manual review.
+    model: claude-opus-4-6
+    max_turns: 40
+    cpu: "2"
+    memory: "4Gi"
+    timeout_seconds: 1200
+    prompt: |
+      Audit and update dependencies:
+        BACKEND (requirements.txt):
+          1. Run `pip list --outdated` and identify packages with known CVEs or
+             that are more than 2 minor versions behind.
+          2. For safe patch/minor bumps (no breaking changes in changelog):
+             update the pinned version in requirements.txt.
+          3. Run `pip install -r requirements.txt` then the full test suite to
+             confirm nothing broke.
+        FRONTEND (package.json):
+          1. Run `npm audit` — fix all critical and high severity issues with
+             `npm audit fix`.
+          2. Run `npm outdated` — update patch versions of prod dependencies.
+          3. Run `npm run build` to confirm everything still compiles.
+        Create a GitHub issue (using `gh issue create`) titled
+        "Dependency Audit $(date +%Y-%m-%d)" listing:
+          - What was auto-updated (safe)
+          - What was skipped and why (major version bumps, breaking changes)
+          - Any CVEs that need manual attention
+
+  # ---- Database Migrations ----------------------------------------------
+
+  - id: migration-cleanup
+    name: "Database Migration Cleanup"
+    description: >
+      Review the Alembic migrations for unused columns, missing indexes, and
+      duplicate/conflicting migrations. Propose and apply safe cleanups.
+    model: claude-opus-4-6
+    max_turns: 40
+    cpu: "2"
+    memory: "4Gi"
+    timeout_seconds: 1200
+    prompt: |
+      Review and clean up Alembic migrations in app/alembic/versions/:
+        1. Check for: duplicate column definitions, missing indexes on foreign keys
+           and frequently-queried columns, columns in migrations but not in models.py.
+        2. Run `PYTHONPATH=. python -m alembic check` to verify migration consistency.
+        3. If safe auto-fixes exist (adding a missing index, cleaning an orphaned
+           column), create a new migration for each fix:
+           `PYTHONPATH=. python -m alembic revision -m "cleanup: <description>"`
+        4. Review the generated migration files — do NOT apply (upgrade) in this run.
+        5. Write a summary as a GitHub issue titled
+           "Migration Cleanup Findings $(date +%Y-%m-%d)" with recommendations.
+
+  # ---- Performance ------------------------------------------------------
+
+  - id: perf-audit
+    name: "Performance Audit (N+1 / Slow Endpoints)"
+    description: >
+      Identify N+1 query patterns, missing eager-loads, and slow route handlers.
+      Fix auto-fixable issues; create issues for complex ones.
+    model: claude-opus-4-6
+    max_turns: 50
+    cpu: "4"
+    memory: "8Gi"
+    timeout_seconds: 1800
+    prompt: |
+      Audit the backend for performance issues:
+        1. Grep for SQLAlchemy lazy-loaded relationships used inside loops
+           (pattern: accessing .relationship inside a for-loop without joinedload).
+           Fix the top 3 worst offenders by adding `joinedload()` or `selectinload()`.
+        2. Find FastAPI routes that perform > 3 sequential DB queries where a single
+           query with joins would suffice.
+        3. Check that all foreign key columns have database-level indexes in the
+           models (SQLAlchemy `index=True` or explicit `Index()`).
+        4. Run the test suite after any changes to confirm correctness.
+        5. Create a GitHub issue "Performance Audit $(date +%Y-%m-%d)" with:
+           - Fixed items (with commit hash)
+           - Remaining items that need manual architectural review
+
+  # ---- Nightly Regression -----------------------------------------------
+
+  - id: nightly-regression
+    name: "Nightly Regression Test Run"
+    description: >
+      Run the full test suite, report new failures vs the baseline, and create
+      a GitHub issue if there are regressions.
+    model: claude-opus-4-6
+    max_turns: 20
+    cpu: "2"
+    memory: "4Gi"
+    timeout_seconds: 900
+    prompt: |
+      Run the full backend test suite and report results:
+        1. Run:
+           # Use your project's test setup  \
+            \
+            \
+           python -m pytest tests/ --tb=short -q 2>&1 | tee /tmp/test-results.txt
+        2. Count: total tests, passed, failed, errors.
+        3. Known baseline: ~63 pre-existing failures (see CLAUDE.md for root causes).
+           Flag ONLY failures that are NEW (not in the baseline categories).
+        4. If there are new regressions:
+           - Create a GitHub issue titled "Regression Alert $(date +%Y-%m-%d)"
+             with the failure list and stack traces.
+        5. If zero new regressions: no issue needed, just exit cleanly.
+        6. Do NOT modify any source files in this task — report only.
