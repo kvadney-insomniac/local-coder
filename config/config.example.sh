@@ -1,4 +1,4 @@
-# local-coder configuration — copy to config.sh and edit, then `source config/config.sh`
+# local-coder configuration - copy to config.sh and edit, then `source config/config.sh`
 # before running any of the launcher scripts.
 
 # ---- Required ---------------------------------------------------------------

@@ -89,7 +89,7 @@ The staging verifiers:
 2. Take screenshots saved to `logs/screenshots/`
 3. Post a structured comment on the GitHub issue with PASS/FAIL status
 4. Add `staging-fail` label on failure
-5. **NEVER auto-promote to "prod release ready"** — all promotions require human approval
+5. **NEVER auto-promote to "prod release ready"** - all promotions require human approval
 
 ## Monitoring
 
@@ -139,7 +139,7 @@ pkill -f "claude --dangerously-skip-permissions"
 **Runner stopped after one task:**
 - Check the task log: `cat logs/<task-id>.log`
 - Common cause: STOP condition hit (NEEDS_SECRET, NEEDS_DESIGN, etc.)
-- The runner continues to the next task — check the main runner log
+- The runner continues to the next task - check the main runner log
 
 **"Startup kill detected":**
 - macOS killed claude before it could start (resource pressure)
@@ -156,7 +156,7 @@ pkill -f "claude --dangerously-skip-permissions"
 - Manually update: `gh project item-edit ...`
 
 **Two workers claimed the same issue:**
-- Both will try to create branches — the second push will see a branch already exists
+- Both will try to create branches - the second push will see a branch already exists
 - Resolution: one will fail PR creation; the other completes. The failed one picks a different issue next round.
 
 ## Skills Reference

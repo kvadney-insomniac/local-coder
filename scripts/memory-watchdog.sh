@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# memory-watchdog.sh — Periodic memory pressure monitor.
+# memory-watchdog.sh - Periodic memory pressure monitor.
 # Pauses local-coder workers when the system is thrashing, resumes when pressure drops.
 #
 # Run via launchd (com.your-project.memory-watchdog.plist) or manually:
@@ -23,7 +23,7 @@ THRESHOLD=$(( TOTAL_MB / 2 ))
 if [[ "${COMPRESSOR_MB}" -gt "${THRESHOLD}" ]]; then
     log "MEMORY PRESSURE: ${COMPRESSOR_MB}MB compressed / ${TOTAL_MB}MB total (threshold: ${THRESHOLD}MB)"
 
-    # Kill orphan browsers and vitest first — cheapest way to free memory
+    # Kill orphan browsers and vitest first - cheapest way to free memory
     CHROME_COUNT=$(pgrep -f "chrome-headless-shell" 2>/dev/null | wc -l | tr -d ' ')
     if [[ "${CHROME_COUNT:-0}" -gt 0 ]]; then
         pgrep -f "chrome-headless-shell" | xargs kill 2>/dev/null || true
@@ -41,11 +41,11 @@ if [[ "${COMPRESSOR_MB}" -gt "${THRESHOLD}" ]]; then
         CLAUDE_PID=$(pgrep -f "Claude Helper" 2>/dev/null | head -1)
         if [[ -n "${CLAUDE_PID}" ]]; then
             CLAUDE_RSS_KB=$(ps -o rss= -p "${CLAUDE_PID}" 2>/dev/null | tr -d ' ')
-            log "Claude Desktop Helper RSS: $(( ${CLAUDE_RSS_KB:-0} / 1024 ))MB — consider quitting it"
+            log "Claude Desktop Helper RSS: $(( ${CLAUDE_RSS_KB:-0} / 1024 ))MB - consider quitting it"
         fi
     fi
 
-    # Pause overnight workers (SIGSTOP) — they resume when memory frees
+    # Pause overnight workers (SIGSTOP) - they resume when memory frees
     WORKER_PIDS=$(pgrep -f "run-local-overnight.sh" 2>/dev/null || true)
     if [[ -n "${WORKER_PIDS}" ]]; then
         log "Pausing local-coder workers: $(echo ${WORKER_PIDS} | tr '\n' ' ')"
@@ -56,7 +56,7 @@ else
     # If workers were paused, resume them
     if [[ -f "${PAUSE_FLAG}" ]]; then
         PAUSED_SINCE=$(cat "${PAUSE_FLAG}")
-        log "Memory pressure resolved (${COMPRESSOR_MB}MB compressed) — resuming workers (paused since ${PAUSED_SINCE})"
+        log "Memory pressure resolved (${COMPRESSOR_MB}MB compressed) - resuming workers (paused since ${PAUSED_SINCE})"
         pgrep -f "run-local-overnight.sh" | xargs kill -CONT 2>/dev/null || true
         rm -f "${PAUSE_FLAG}"
     fi

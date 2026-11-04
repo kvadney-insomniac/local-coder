@@ -7,7 +7,7 @@ logs/
 *.lock
 *.lock.d/
 
-# Secrets (defensive — should never be in the repo to begin with)
+# Secrets (defensive - should never be in the repo to begin with)
 .env
 .env.*
 secrets/

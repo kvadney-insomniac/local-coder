@@ -1,4 +1,4 @@
-# local-coder-bot GitHub identity — setup checklist
+# local-coder-bot GitHub identity - setup checklist
 
 Today the worker assigns issues to `${BOARD_OWNER:-your-github-handle}` (the operator's personal
 account). To switch to a dedicated bot identity, complete these human-only
@@ -15,5 +15,5 @@ steps, then flip one env var.
 5. Verify: launch one worker, confirm the next claim assigns to
    `local-coder-bot` (`gh issue view <N> --json assignees`).
 
-No code change needed — `BOARD_ASSIGNEE` is consumed by every
+No code change needed - `BOARD_ASSIGNEE` is consumed by every
 `add-assignee`/`remove-assignee` call in `board-lib.sh`.

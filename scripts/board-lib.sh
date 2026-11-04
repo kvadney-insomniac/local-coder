@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# board-lib.sh — Shared functions for board-driven local coder workers.
+# board-lib.sh - Shared functions for board-driven local coder workers.
 # Source this file; do not execute directly.
 #
 # Provides:
@@ -30,7 +30,7 @@ BOARD_OPT_PROD_READY="acd154ac"
 BOARD_OPT_RELEASED="e1a87156"
 
 # Paths
-BOARD_REPO_ROOT="${BOARD_REPO_ROOT:-${REPO_ROOT:?REPO_ROOT must be set — source config/config.sh first}}"
+BOARD_REPO_ROOT="${BOARD_REPO_ROOT:-${REPO_ROOT:?REPO_ROOT must be set - source config/config.sh first}}"
 BOARD_LOGS_DIR="${BOARD_LOGS_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/logs}"
 BOARD_BACKEND_DIR="${BOARD_REPO_ROOT}/backend"
 BOARD_FRONTEND_DIR="${BOARD_REPO_ROOT}/frontend"
@@ -39,18 +39,18 @@ BOARD_DEVOPS_DIR="${BOARD_REPO_ROOT}/devops"
 mkdir -p "${BOARD_LOGS_DIR}"
 
 # --------------------------------------------------------------------------
-# Discipline preamble — prepended to every Claude invocation
+# Discipline preamble - prepended to every Claude invocation
 # --------------------------------------------------------------------------
 read -r -d '' BOARD_PREAMBLE <<'PREAMBLE_EOF' || true
-IMPORTANT RULES FOR THIS TASK — READ BEFORE DOING ANYTHING:
+IMPORTANT RULES FOR THIS TASK - READ BEFORE DOING ANYTHING:
 1. Work on the dev branch directly unless told to create a feature branch.
-2. Do NOT delete or comment-out existing features to fix errors — fix the actual error.
+2. Do NOT delete or comment-out existing features to fix errors - fix the actual error.
 3. Before committing, run the full test suite and verify it passes (no new failures beyond known baseline).
 4. Commit with a clear, accurate message describing what changed and why.
 5. If tests fail due to your changes, fix them before committing. Pre-existing failures (~63 backend) are OK.
 6. Backend test command: cd backend && ${BACKEND_TEST_CMD:-python -m pytest tests/ --tb=short -q}
 7. Frontend test command: cd frontend && npm run build && npm test -- --run
-8. Scope strictly to the task — no speculative refactoring or unrequested features.
+8. Scope strictly to the task - no speculative refactoring or unrequested features.
 
 TASK:
 PREAMBLE_EOF
@@ -202,7 +202,7 @@ for item in items:
     assignees = [a['login'] for a in content.get('assignees', {}).get('nodes', [])]
     repo      = content.get('repository', {}).get('name', '')
 
-    # Treat the repo owner as non-blocking — GitHub auto-assigns the issue
+    # Treat the repo owner as non-blocking - GitHub auto-assigns the issue
     # author, which would otherwise make every fresh Backlog item look claimed.
     NON_BLOCKING_ASSIGNEES = {'${BOARD_OWNER:-your-github-handle}', 'your-github-handle'}
     blocking_assignees = [a for a in assignees if a not in NON_BLOCKING_ASSIGNEES]
@@ -279,8 +279,8 @@ worker, until = m.group(1), m.group(2)
 now = '${now}'
 self_name = '${self}'
 # ISO-8601 Z strings sort lexicographically as time order.
-if until <= now: sys.exit(0)        # lock expired — free
-if worker == self_name: sys.exit(0) # our own lock — not blocking
+if until <= now: sys.exit(0)        # lock expired - free
+if worker == self_name: sys.exit(0) # our own lock - not blocking
 print(worker)
 " 2>/dev/null
 }
@@ -380,7 +380,7 @@ board_cleanup_orphan_browsers() {
     local chrome_count
     chrome_count=$(pgrep -f "chrome-headless-shell" 2>/dev/null | wc -l | tr -d ' ')
     if [[ "${chrome_count:-0}" -gt 10 ]]; then
-        echo "  [cleanup] ${chrome_count} orphaned chrome-headless-shell — killing"
+        echo "  [cleanup] ${chrome_count} orphaned chrome-headless-shell - killing"
         pkill -f "chrome-headless-shell" 2>/dev/null || true
         sleep 2
     fi
@@ -390,7 +390,7 @@ board_cleanup_orphan_vitest() {
     local vitest_count
     vitest_count=$(pgrep -c -f 'vitest' 2>/dev/null || echo 0)
     if [[ "${vitest_count:-0}" -gt 4 ]]; then
-        echo "  [cleanup] ${vitest_count} orphaned vitest processes — killing"
+        echo "  [cleanup] ${vitest_count} orphaned vitest processes - killing"
         pkill -f vitest 2>/dev/null || true
         sleep 2
     fi
@@ -407,7 +407,7 @@ board_acquire_playwright_lock() {
         local holder="(unknown)"
         [[ -f "${BOARD_PLAYWRIGHT_LOCK_DIR}/holder" ]] && holder=$(cat "${BOARD_PLAYWRIGHT_LOCK_DIR}/holder")
         if [[ $waited -eq 0 ]]; then
-            echo "  [lock] Playwright lock held by ${holder} — waiting..."
+            echo "  [lock] Playwright lock held by ${holder} - waiting..."
         fi
         sleep 30
         waited=$((waited + 30))
@@ -415,13 +415,13 @@ board_acquire_playwright_lock() {
             local holder_pid
             holder_pid=$(cat "${BOARD_PLAYWRIGHT_LOCK_DIR}/holder" | cut -d: -f1)
             if [[ -n "${holder_pid}" ]] && ! kill -0 "${holder_pid}" 2>/dev/null; then
-                echo "  [lock] Holder PID ${holder_pid} is dead — breaking stale lock"
+                echo "  [lock] Holder PID ${holder_pid} is dead - breaking stale lock"
                 rm -rf "${BOARD_PLAYWRIGHT_LOCK_DIR}" 2>/dev/null || true
                 continue
             fi
         fi
         if [[ $waited -gt 5400 ]]; then
-            echo "  [lock] Wait exceeded 90 min — breaking lock"
+            echo "  [lock] Wait exceeded 90 min - breaking lock"
             rm -rf "${BOARD_PLAYWRIGHT_LOCK_DIR}" 2>/dev/null || true
         fi
     done
@@ -456,12 +456,12 @@ board_wait_for_cpu() {
             break
         fi
         if [[ $waited -eq 0 ]]; then
-            echo "  [gate] CPU load ${load} > threshold ${threshold} — waiting..."
+            echo "  [gate] CPU load ${load} > threshold ${threshold} - waiting..."
         fi
         sleep 30
         waited=$((waited + 30))
         if [[ $waited -gt 600 ]]; then
-            echo "  [gate] CPU still loaded after 10 min — proceeding"
+            echo "  [gate] CPU still loaded after 10 min - proceeding"
             break
         fi
     done
@@ -494,7 +494,7 @@ board_wait_for_memory() {
             continue
         fi
 
-        # On macOS, AVAIL_MB is misleading — the OS aggressively uses RAM for
+        # On macOS, AVAIL_MB is misleading - the OS aggressively uses RAM for
         # file cache, so "available" stays low even with zero pressure. The
         # compressor check above is the real thrashing signal. Keep this at 0
         # so it never blocks; the compressor + launchd memory-watchdog handle
@@ -503,13 +503,13 @@ board_wait_for_memory() {
             return 0
         fi
         if [[ $attempt -eq 0 ]]; then
-            echo "  [gate] AVAIL_MB=0 (extreme) — waiting..."
+            echo "  [gate] AVAIL_MB=0 (extreme) - waiting..."
             board_cleanup_orphan_vitest
         fi
         sleep 30
         attempt=$((attempt + 1))
     done
-    echo "  [gate] Memory pressure persists after 10 min — proceeding"
+    echo "  [gate] Memory pressure persists after 10 min - proceeding"
 }
 
 # --------------------------------------------------------------------------
@@ -520,7 +520,7 @@ BOARD_ACTIVE_CHILD_PID=""
 board_run_claude() {
     local workdir="$1"
     local prompt="$2"
-    local model="${3:-claude-opus-4-6}"
+    local model="${3:-${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}}"
     local priority="${4:-P2}"
     local task_label="${5:-task}"
     local task_log="${BOARD_LOGS_DIR}/${task_label}.log"
@@ -562,14 +562,14 @@ ${prompt}" > "$PROMPT_FILE"
         BOARD_ACTIVE_CHILD_PID=""
 
         if [[ "${EXIT_CODE}" -eq 124 ]]; then
-            echo "  [timeout] Task exceeded ${TASK_TIMEOUT}s — killed" >> "${task_log}"
+            echo "  [timeout] Task exceeded ${TASK_TIMEOUT}s - killed" >> "${task_log}"
             break
         fi
 
         local LOG_LINES
         LOG_LINES=$(wc -l < "${task_log}" 2>/dev/null || echo 0)
         if [[ "${EXIT_CODE}" -eq 137 ]] && [[ "${LOG_LINES}" -lt 5 ]]; then
-            echo "  [startup-kill] Exit 137, ${LOG_LINES} log lines — will retry" >> "${task_log}"
+            echo "  [startup-kill] Exit 137, ${LOG_LINES} log lines - will retry" >> "${task_log}"
             ATTEMPT=$((ATTEMPT + 1))
             continue
         fi

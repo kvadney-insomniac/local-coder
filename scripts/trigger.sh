@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# trigger.sh — kick off a Local Coder job on demand
+# trigger.sh - kick off a Local Coder job on demand
 #
 # Usage:
 #   ./trigger.sh "task description"  [OPTIONS]
@@ -13,7 +13,7 @@
 #                        Shortnames: backend, frontend, devops
 #   --feature <branch>   Feature branch name (default: local-coder/TIMESTAMP)
 #   --issue <number>     GitHub issue number to comment on when done
-#   --model <model>      Override model (default from catalog or claude-opus-4-6)
+#   --model <model>      Override model (default from catalog, LOCAL_CODER_DEFAULT_MODEL, or claude-opus-5-5)
 #   --max-turns <n>      Override max turns (default from catalog or 50)
 #   --install-deps       Install repo deps before running (slower)
 #   --dry-run            Run Claude but skip commit/push/PR
@@ -49,7 +49,7 @@ BRANCH="dev"
 REPO="backend"
 FEATURE_BRANCH=""
 ISSUE_NUMBER=""
-MODEL="claude-opus-4-6"
+MODEL="${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}"
 MAX_TURNS="50"
 TASK_TIMEOUT_SECONDS=""
 INSTALL_DEPS="false"
@@ -81,11 +81,11 @@ catalog = yaml.safe_load(open('${CATALOG}'))
 print('Available task IDs:')
 print('')
 for t in catalog['tasks']:
-    model = t.get('model', 'claude-opus-4-6')
+    model = t.get('model', '${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}')
     print(f\"  {t['id']:<20} [{model}]  {t['name']}\")
     print(f\"                       {t['description'][:80]}\")
     print()
-" 2>/dev/null || echo "(could not read catalog — install PyYAML: pip install pyyaml)"
+" 2>/dev/null || echo "(could not read catalog - install PyYAML: pip install pyyaml)"
 }
 
 # --------------------------------------------------------------------------
@@ -173,7 +173,7 @@ esac
 # Build env-var overrides via a YAML flags file
 # (--update-env-vars breaks on special chars like [ ] ` in prompt text)
 # --------------------------------------------------------------------------
-# Strip newlines from TASK_PROMPT — Cloud Run env vars must be single-line.
+# Strip newlines from TASK_PROMPT - Cloud Run env vars must be single-line.
 TASK_PROMPT_CLEAN=$(echo "$TASK_PROMPT" | tr '\n' ' ' | sed 's/  */ /g')
 
 # Export into _CC_* namespace so Python reads them safely from os.environ

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# launch-overnight.sh — Launch all 9 overnight board runners in parallel.
+# launch-overnight.sh - Launch all 9 overnight board runners in parallel.
 #
 # Usage:
 #   bash scripts/launch-overnight.sh              # launch all 9 runners
@@ -30,11 +30,11 @@ mkdir -p "${LOG_DIR}/screenshots"
 # --------------------------------------------------------------------------
 # Pre-flight: Claude Desktop + overnight workers = OOM on ≤32 GB machines.
 # Claude Desktop with 10+ MCP servers consumes 8-15 GB resident memory.
-# Warn but don't block — the memory watchdog will handle pressure dynamically.
+# Warn but don't block - the memory watchdog will handle pressure dynamically.
 # --------------------------------------------------------------------------
 if pgrep -f "Claude.app" >/dev/null 2>&1; then
     RAM_GB=$(( $(sysctl -n hw.memsize) / 1024 / 1024 / 1024 ))
-    echo "⚠️  Claude Desktop is running — it will compete for RAM with overnight workers."
+    echo "⚠️  Claude Desktop is running - it will compete for RAM with overnight workers."
     echo "   On a ${RAM_GB}GB machine, this may cause memory pressure."
     echo "   Consider quitting Claude Desktop before overnight runs."
     echo ""
@@ -125,7 +125,7 @@ fi
 DRY_RUN=""
 if [[ "${1:-}" == "--dry-run" ]]; then
     DRY_RUN="--dry-run"
-    echo "*** DRY RUN — would launch these runners: ***"
+    echo "*** DRY RUN - would launch these runners: ***"
     echo ""
 fi
 
@@ -154,7 +154,7 @@ fi
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║           Overnight Board Runners — Launch                   ║"
+echo "║           Overnight Board Runners - Launch                   ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo "  Started:  $(date)"
 echo "  Runners:  ${#RUNNER_NAMES[@]} (${CONFIGURED_FRONTEND} frontend)"
@@ -162,14 +162,14 @@ echo "  Logs:     ${LOG_DIR}/"
 echo ""
 
 # Clear old PIDs file
-printf "# Overnight runner PIDs — launched %s\n" "$(date)" > "${PIDS_FILE}"
+printf "# Overnight runner PIDs - launched %s\n" "$(date)" > "${PIDS_FILE}"
 
 for NAME in "${RUNNER_NAMES[@]}"; do
     QUEUE_FILE="${SCRIPT_DIR}/$(runner_queue_file "$NAME")"
     LOG="${LOG_DIR}/${NAME}.log"
 
     if [[ ! -f "${QUEUE_FILE}" ]]; then
-        echo "  SKIP ${NAME} — queue file not found: ${QUEUE_FILE}"
+        echo "  SKIP ${NAME} - queue file not found: ${QUEUE_FILE}"
         continue
     fi
 
@@ -192,8 +192,8 @@ for NAME in "${RUNNER_NAMES[@]}"; do
     echo "    PID=${PID}  queue=$(basename "${QUEUE_FILE}")  log=$(basename "${LOG}")"
     echo ""
 
-    # Stagger launches to avoid thundering herd — workers fire their first claude
-    # call 45–135s after launch, so 15s between launches spreads them across a
+    # Stagger launches to avoid thundering herd - workers fire their first claude
+    # call 45-135s after launch, so 15s between launches spreads them across a
     # 2+ minute window and prevents simultaneous startup kills.
     sleep 15
 done

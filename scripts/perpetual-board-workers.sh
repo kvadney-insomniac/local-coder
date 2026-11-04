@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# perpetual-board-workers.sh — Respawn supervisor for board workers.
+# perpetual-board-workers.sh - Respawn supervisor for board workers.
 #
 # Wraps each named worker in board-worker.sh in a forever loop, sleeping
 # between iterations so an empty board doesn't burn CPU or GitHub API quota.
@@ -156,7 +156,7 @@ fi
 # Launch one supervisor per worker config
 # --------------------------------------------------------------------------
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║   Perpetual board worker supervisors — launching             ║"
+echo "║   Perpetual board worker supervisors - launching             ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo "  Started:       $(date)"
 echo "  Supervisors:   ${#WORKER_CONFIGS[@]}"
@@ -165,7 +165,7 @@ echo "  Active sleep:  ${ACTIVE_SLEEP}s  (between productive batches)"
 echo ""
 
 rm -f "${STOP_MARKER}"
-printf "# Perpetual supervisor PIDs — launched %s\n" "$(date)" > "${PIDS_FILE}"
+printf "# Perpetual supervisor PIDs - launched %s\n" "$(date)" > "${PIDS_FILE}"
 
 for CONFIG in "${WORKER_CONFIGS[@]}"; do
     NAME="${CONFIG%%:*}"

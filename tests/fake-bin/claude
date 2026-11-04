@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# A stand-in for the `claude` CLI so the harness can be exercised without a
+# model, a subscription, or network access. Prepend tests/fake-bin to PATH.
+#
+# It accepts the flags the harness passes (see scripts/run-local-overnight.sh,
+# scripts/entrypoint.sh, scripts/board-lib.sh) and records every invocation.
+#
+# Environment:
+#   FAKE_CLAUDE_LOG_DIR   where to write args/prompt files (default: $PWD/.fake-claude)
+#   FAKE_CLAUDE_ACTION    what to do with the prompt (default: edit-and-commit)
+#       edit-and-commit   write SMOKE.txt in the cwd and commit it, like a real run
+#       edit-only         write SMOKE.txt, leave it uncommitted (entrypoint style)
+#       noop              print a reply and exit 0 without touching the tree
+#       fail              print an error and exit 1
+#       hang              sleep for 600s (lets timeout handling be tested)
+#
+# The prompt is never interpreted. The fake model's "behavior" is chosen only
+# through FAKE_CLAUDE_ACTION so tests stay deterministic.
+
+set -uo pipefail
+
+LOG_DIR="${FAKE_CLAUDE_LOG_DIR:-${PWD}/.fake-claude}"
+ACTION="${FAKE_CLAUDE_ACTION:-edit-and-commit}"
+PROMPT=""
+MODEL=""
+MAX_TURNS=""
+OUTPUT_FORMAT="text"
+SKIP_PERMS="false"
+
+if [[ "${1:-}" == "--version" ]]; then
+    echo "0.0.0-fake (local-coder test double)"
+    exit 0
+fi
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -p|--print)
+            # The prompt may follow -p or arrive on stdin.
+            if [[ $# -ge 2 && "$2" != -* ]]; then PROMPT="$2"; shift 2; else shift; fi ;;
+        --model)                        MODEL="$2"; shift 2 ;;
+        --max-turns)                    MAX_TURNS="$2"; shift 2 ;;
+        --output-format)                OUTPUT_FORMAT="$2"; shift 2 ;;
+        --dangerously-skip-permissions) SKIP_PERMS="true"; shift ;;
+        --bare|--verbose)               shift ;;
+        --permission-mode|--allowedTools|--allowed-tools|--max-budget-usd|--append-system-prompt)
+                                        shift 2 ;;
+        --)                             shift; break ;;
+        -*)                             echo "fake claude: unknown flag $1" >&2; exit 2 ;;
+        *)                              PROMPT="$1"; shift ;;
+    esac
+done
+
+if [[ -z "$PROMPT" && ! -t 0 ]]; then
+    PROMPT="$(cat)"
+fi
+
+mkdir -p "$LOG_DIR"
+STAMP="$(date +%s)-$$"
+{
+    echo "cwd=${PWD}"
+    echo "model=${MODEL}"
+    echo "max_turns=${MAX_TURNS}"
+    echo "output_format=${OUTPUT_FORMAT}"
+    echo "skip_permissions=${SKIP_PERMS}"
+    echo "action=${ACTION}"
+} > "${LOG_DIR}/invocation-${STAMP}.env"
+printf '%s' "$PROMPT" > "${LOG_DIR}/prompt-${STAMP}.txt"
+
+echo "fake claude: model=${MODEL:-unset} action=${ACTION} prompt_bytes=${#PROMPT}"
+
+case "$ACTION" in
+    edit-and-commit)
+        printf 'written by the fake model at %s\n' "$STAMP" > SMOKE.txt
+        git add SMOKE.txt
+        git commit -q -m "[local-coder] smoke: add SMOKE.txt" \
+            -m "Written by tests/fake-bin/claude. No model was involved."
+        echo "fake claude: committed SMOKE.txt"
+        ;;
+    edit-only)
+        printf 'written by the fake model at %s\n' "$STAMP" > SMOKE.txt
+        echo "fake claude: wrote SMOKE.txt"
+        ;;
+    noop)
+        echo "fake claude: nothing to do"
+        ;;
+    fail)
+        echo "fake claude: simulated failure" >&2
+        exit 1
+        ;;
+    hang)
+        sleep 600
+        ;;
+    *)
+        echo "fake claude: unknown FAKE_CLAUDE_ACTION '${ACTION}'" >&2
+        exit 2
+        ;;
+esac
+
+if [[ "$OUTPUT_FORMAT" == "json" ]]; then
+    printf '{"type":"result","subtype":"success","is_error":false,"result":"fake","total_cost_usd":0,"session_id":"fake-%s"}\n' "$STAMP"
+fi
+exit 0

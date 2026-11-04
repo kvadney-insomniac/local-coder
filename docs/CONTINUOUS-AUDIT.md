@@ -2,7 +2,7 @@
 
 Periodic, deterministic code-quality scanner that files GitHub issues onto the
 project board (#10). Mirrors the local-coder loop pattern in this directory but
-does **not** call Claude — the scanner is pure static-analysis, so cost is zero
+does **not** call Claude - the scanner is pure static-analysis, so cost is zero
 and findings are reproducible.
 
 ## What gets audited
@@ -45,7 +45,7 @@ gh auth status
 ## Manual run (dry-run first, always)
 
 ```bash
-# 1. Scan only — writes JSON, no GitHub calls
+# 1. Scan only - writes JSON, no GitHub calls
 bash scripts/audit-scan.sh
 # stdout's last line is the path, e.g.
 #   logs/audit-findings-20260521-...json
@@ -71,10 +71,10 @@ Tunables (env vars):
 | Var | Default | Meaning |
 |---|---|---|
 | `AUDIT_INTERVAL` | `21600` | Seconds between scans (6h) |
-| `AUDIT_MAX_NEW` | `10` | Cap on new issues per round — prevents flooding |
+| `AUDIT_MAX_NEW` | `10` | Cap on new issues per round - prevents flooding |
 | `AUDIT_DRY_RUN` | `0` | `1` to log what *would* be filed without creating |
 
-PID lock lives at `logs/continuous-audit-loop.pid` — a second
+PID lock lives at `logs/continuous-audit-loop.pid` - a second
 invocation refuses to start while the first is alive (same pattern as
 `demo-prep-loop.sh` and `parallel-loop.sh`).
 
@@ -88,7 +88,7 @@ cp scripts/com.your-project.continuous-audit.plist \
 launchctl load ~/Library/LaunchAgents/com.your-project.continuous-audit.plist
 ```
 
-(The plist isn't checked in yet — model it on
+(The plist isn't checked in yet - model it on
 `scripts/com.your-project.memory-watchdog.plist` referenced in the root
 `CLAUDE.md`.)
 
@@ -107,7 +107,7 @@ That way:
 
 - Renaming the issue title does **not** un-dedupe.
 - A reformatted file does **not** create a duplicate.
-- Closing an issue (any reason) suppresses future re-files — closed counts as
+- Closing an issue (any reason) suppresses future re-files - closed counts as
   "won't fix" so the scanner won't churn the board.
 
 To force a re-file: delete the original issue (not close), or change the rule
@@ -119,19 +119,19 @@ code emitted by the scanner.
    (e.g., drop `PLW` if ruff PLW warnings are too chatty).
 2. **For one file**: add the standard tool ignore (`# noqa: F401`,
    `// eslint-disable-line`, `# vulture: ignore`).
-3. **For one finding**: close the issue with the `wontfix` label — the
+3. **For one finding**: close the issue with the `wontfix` label - the
    fingerprint trailer prevents re-files.
 
 ## Why static tools, not Claude
 
-The neighboring `audit-fix-loop.sh` uses Claude to score the codebase 1–10 across
-seven dimensions — that's the right tool for a holistic readiness narrative.
+The neighboring `audit-fix-loop.sh` uses Claude to score the codebase 1-10 across
+seven dimensions - that's the right tool for a holistic readiness narrative.
 But for filing one ticket per smell, deterministic tools are:
 
-- **Free** — no token spend per scan.
-- **Reproducible** — the same `ruff F401` finds the same line every time, so
+- **Free** - no token spend per scan.
+- **Reproducible** - the same `ruff F401` finds the same line every time, so
   fingerprints stay stable.
-- **Fast** — a full scan is seconds, not minutes.
+- **Fast** - a full scan is seconds, not minutes.
 
 The output JSON is structured enough that a later enhancement could pipe it
 through Claude for *triage* (grouping related findings, drafting a unified PR

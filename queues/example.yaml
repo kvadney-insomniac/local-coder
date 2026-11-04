@@ -24,10 +24,10 @@ queue:
     title: "Fix typos in README"
     target_repo: backend
     estimated_duration_minutes: 5
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     prompt: |
       Read README.md. Identify and fix any typos or grammatical errors.
-      Do not rewrite content — only correct mistakes. Commit with message:
+      Do not rewrite content - only correct mistakes. Commit with message:
       [local-coder] docs: fix typos in README
 
   - id: example-dead-import
@@ -36,7 +36,7 @@ queue:
     title: "Remove unused imports in src/"
     target_repo: backend
     estimated_duration_minutes: 10
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     prompt: |
       Audit src/ for unused imports. For each file with unused imports,
       remove them. Run the full test suite to confirm nothing broke.
@@ -48,7 +48,7 @@ queue:
     title: "Add a test for the most-touched untested file"
     target_repo: backend
     estimated_duration_minutes: 20
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     prompt: |
       Use git log to find files touched in the last 30 commits with no
       corresponding test file. Pick the one with the most recent commits.

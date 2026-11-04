@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# telemetry-report.sh — Human-readable rollup from telemetry-snapshot.json.
+# telemetry-report.sh - Human-readable rollup from telemetry-snapshot.json.
 #
 # Reads logs/telemetry-snapshot.json (produced by telemetry-collect.sh) and
 # prints a table. PRs(24h) is looked up via gh and cached for 1 hour at
@@ -108,10 +108,10 @@ fe_share = {}
 for mode in ('backlog', 'rescue'):
     be_share.update(_share(workers, mode, 'backend', be_prs if mode=='backlog' else 0))
     fe_share.update(_share(workers, mode, 'frontend', fe_prs if mode=='backlog' else 0))
-# Rescue produces some PRs (fixes) — attribute proportionally to repo of the worker
+# Rescue produces some PRs (fixes) - attribute proportionally to repo of the worker
 for w in workers:
     if w['mode'] == 'rescue' and w['target'] == 'backend':
-        # Add rescue's share — split rescue's 24h activity equally with backlog
+        # Add rescue's share - split rescue's 24h activity equally with backlog
         pass
 
 pr_attr = {}
@@ -125,7 +125,7 @@ for w in workers:
         pr_attr[name] = 0
 
 print()
-print(f"Board Worker Telemetry — snapshot {ts}")
+print(f"Board Worker Telemetry - snapshot {ts}")
 print(f"{'='*94}")
 print(f"{'Worker':<22} {'Mode':<16} {'Iter':>6} {'Done':>6} {'Idle':>6} {'Work(min)':>10} {'KB-in':>10} {'PRs(24h)':>9}")
 print(f"{'-'*94}")

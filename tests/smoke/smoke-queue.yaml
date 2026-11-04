@@ -1,0 +1,19 @@
+# One tiny task for the end-to-end smoke test (tests/smoke/run-smoke.sh).
+# The fake claude CLI ignores the prompt text; it is here so the test can
+# confirm the runner delivers the prompt (with its preamble) unchanged.
+
+version: "1"
+
+queue:
+
+  - id: smoke-write-marker
+    priority: P3
+    category: smoke
+    title: "Write SMOKE.txt and commit it"
+    target_repo: root
+    estimated_duration_minutes: 1
+    model: claude-opus-5-5
+    prompt: |
+      SMOKE TEST: create a file named SMOKE.txt at the repo root containing
+      one line of text, then commit it with message
+      [local-coder] smoke: add SMOKE.txt

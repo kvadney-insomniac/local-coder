@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# supervisor-healthcheck.sh — Re-spawn dead perpetual-board-worker supervisors.
+# supervisor-healthcheck.sh - Re-spawn dead perpetual-board-worker supervisors.
 #
 # Designed to be invoked every ~60s by launchd. Idempotent: a no-op when every
 # registered supervisor PID is alive. If any are dead, re-launches just those
@@ -7,7 +7,7 @@
 #
 # Skipped entirely if the intentional-stop marker exists, so `--stop` is sticky.
 #
-# Written for bash 3.x (macOS default) — no associative arrays.
+# Written for bash 3.x (macOS default) - no associative arrays.
 
 set -uo pipefail
 
@@ -110,7 +110,7 @@ TMP="${PIDS_FILE}.tmp.$$"
     if [[ -n "${HEADER_LINE}" ]]; then
         echo "${HEADER_LINE}"
     fi
-    echo "# Healthcheck respawn at $(date) — replaced:${DEAD_NAMES:+ }${DEAD_NAMES}"
+    echo "# Healthcheck respawn at $(date) - replaced:${DEAD_NAMES:+ }${DEAD_NAMES}"
     for i in "${!NAMES[@]}"; do
         echo "${NAMES[$i]}=${PIDS[$i]}"
     done

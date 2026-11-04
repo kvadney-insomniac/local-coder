@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# continuous-audit-supervisor.sh — Keep continuous-audit-loop.sh alive forever.
+# continuous-audit-supervisor.sh - Keep continuous-audit-loop.sh alive forever.
 #
 # Background: on 2026-05-21 the inner loop died mid-sleep because a parallel
 # board-worker wiped logs/, breaking later log writes. The
@@ -36,7 +36,7 @@ echo $$ > "${SUP_PID_FILE}"
 
 CHILD_PID=""
 shutdown() {
-    sup_log "received signal — killing child ${CHILD_PID:-?} and exiting"
+    sup_log "received signal - killing child ${CHILD_PID:-?} and exiting"
     if [[ -n "${CHILD_PID}" ]] && kill -0 "${CHILD_PID}" 2>/dev/null; then
         kill -TERM "${CHILD_PID}" 2>/dev/null || true
         wait "${CHILD_PID}" 2>/dev/null || true
@@ -48,7 +48,7 @@ trap shutdown INT TERM
 trap 'rm -f "${SUP_PID_FILE}"' EXIT
 
 sup_log "════════════════════════════════════════════"
-sup_log "supervisor started (PID $$) — wrapping ${LOOP}"
+sup_log "supervisor started (PID $$) - wrapping ${LOOP}"
 sup_log "════════════════════════════════════════════"
 
 restart_count=0
@@ -60,7 +60,7 @@ while true; do
     sup_log "loop PID=${CHILD_PID}"
     wait "${CHILD_PID}"
     exit_code=$?
-    sup_log "loop exited code=${exit_code} — backing off 30s then restarting"
+    sup_log "loop exited code=${exit_code} - backing off 30s then restarting"
     restart_count=$((restart_count + 1))
     sleep 30
 done

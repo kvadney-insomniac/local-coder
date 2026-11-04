@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# smoke-test.sh — validate the Local Coder Docker image
+# smoke-test.sh - validate the Local Coder Docker image
 #
 # Usage:
 #   ./smoke-test.sh                          # test :latest from Artifact Registry
@@ -107,7 +107,7 @@ check "git init + commit"     "
 "
 
 # --------------------------------------------------------------------------
-# Claude CLI invocation (no API key — expect auth error, not missing binary)
+# Claude CLI invocation (no API key - expect auth error, not missing binary)
 # --------------------------------------------------------------------------
 echo ""
 echo "--- Claude CLI ---"

@@ -1,0 +1,9 @@
+# Python packages the harness itself needs. The agent's target repos have
+# their own requirements; these are only for the scripts in this repo.
+#
+#   pip install -r requirements-dev.txt
+#
+# PyYAML parses queue YAML files in scripts/run-local-overnight.sh and the
+# task catalog in scripts/trigger.sh. Pinned to the current release so CI and
+# laptops agree; bump deliberately.
+pyyaml==6.0.3

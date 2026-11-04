@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: lint, unit, smoke, dashes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install shellcheck and gh
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q shellcheck gh jq
+
+      - name: Install Python dependencies
+        run: python3 -m pip install -r requirements-dev.txt
+
+      - name: Dependency check (fake model, no claude CLI)
+        run: bash scripts/check-deps.sh --no-claude
+
+      - name: Lint
+        run: make lint
+
+      - name: Unit tests
+        run: make test
+
+      - name: Smoke test (one queue task end to end with a fake claude)
+        run: make smoke
+
+      - name: No em or en dashes
+        run: make dashes

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""audit-file-issues.py — Turn an audit-scan findings JSON into GitHub issues.
+"""audit-file-issues.py - Turn an audit-scan findings JSON into GitHub issues.
 
 Reads a findings JSON written by audit-scan.sh, dedupes against existing
 audit-labeled issues by an embedded fingerprint trailer, and creates new issues
@@ -10,7 +10,7 @@ Invariants:
   - Never reopens a closed audit issue automatically (closed = "won't fix").
   - Caps issues filed per run via --max-new (default 10).
   - Severity * recency drives ordering; ties broken by file path.
-  - Dry-run by default — pass --apply to actually create issues.
+  - Dry-run by default - pass --apply to actually create issues.
 
 The fingerprint lives in the body as:  <!-- audit-fingerprint: <sha256> -->
 That trailer is the source of truth for dedup; titles can drift freely.
@@ -48,7 +48,7 @@ FINGERPRINT_TRAILER_RE = re.compile(r"<!--\s*audit-fingerprint:\s*([0-9a-f]{64})
 
 
 # --------------------------------------------------------------------------
-# gh helpers — thin wrappers, log on failure but never raise unless --apply.
+# gh helpers - thin wrappers, log on failure but never raise unless --apply.
 # --------------------------------------------------------------------------
 def gh(args: list[str], check: bool = True) -> subprocess.CompletedProcess:
     return subprocess.run(["gh", *args], capture_output=True, text=True, check=check)
@@ -57,7 +57,7 @@ def gh(args: list[str], check: bool = True) -> subprocess.CompletedProcess:
 def existing_fingerprints(repo_slug: str) -> set[str]:
     """Return fingerprints from every audit-labeled issue (open or closed)."""
     fps: set[str] = set()
-    # Search all states — a closed "won't fix" still counts so we don't refile it.
+    # Search all states - a closed "won't fix" still counts so we don't refile it.
     cp = gh([
         "issue", "list", "-R", repo_slug,
         "--label", AUDIT_LABEL,
@@ -105,7 +105,7 @@ def title_for(finding: dict) -> str:
     if rule:
         base += f" ({rule})"
     if short_ev:
-        base += f" — {short_ev}"
+        base += f" - {short_ev}"
     return base[:240]
 
 
@@ -121,7 +121,7 @@ def body_for(finding: dict) -> str:
         "**Evidence:**\n"
         f"```\n{(finding.get('evidence') or '').strip()}\n```\n\n"
         "_Auto-filed by `scripts/continuous-audit-loop.sh`. "
-        "Close with `wontfix` to suppress permanently — the fingerprint trailer "
+        "Close with `wontfix` to suppress permanently - the fingerprint trailer "
         "keeps it from being re-filed._\n\n"
         f"<!-- audit-fingerprint: {finding['fingerprint']} -->\n"
     )
@@ -161,7 +161,7 @@ def create_issue(repo_slug: str, finding: dict, apply: bool) -> str | None:
     # gh prints the issue URL on stdout.
     url = (cp.stdout or "").strip().splitlines()[-1] if cp.stdout else ""
     if url:
-        # Best-effort: add to project board. Failure is non-fatal — the issue
+        # Best-effort: add to project board. Failure is non-fatal - the issue
         # itself exists and humans can drag it onto the board.
         add = gh([
             "project", "item-add",
