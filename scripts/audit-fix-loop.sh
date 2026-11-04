@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# audit-fix-loop.sh — Self-sustaining audit → fix → re-audit loop.
+# audit-fix-loop.sh - Self-sustaining audit → fix → re-audit loop.
 #
 # Loops until the prod-readiness audit scores 10/10:
 #   1. Wait for any existing run-local-overnight.sh to finish
@@ -7,7 +7,7 @@
 #   3. If 10/10 → exit success
 #   4. If < 10  → generate new task queue, run overnight runner, loop
 #
-# Usage (recommended — run in background):
+# Usage (recommended - run in background):
 #   nohup bash scripts/audit-fix-loop.sh > /tmp/audit-fix-loop.log 2>&1 &
 #
 # Log: /tmp/audit-fix-loop.log
@@ -15,7 +15,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="${REPO_ROOT:?REPO_ROOT must be set — source config/config.sh first}"   # .../your-project
+REPO_ROOT="${REPO_ROOT:?REPO_ROOT must be set - source config/config.sh first}"   # .../your-project
 LOG="/tmp/audit-fix-loop.log"
 OVERNIGHT_RUNNER="${SCRIPT_DIR}/run-local-overnight.sh"
 
@@ -39,7 +39,7 @@ wait_for_overnight() {
     while true; do
         count=$(pgrep -f "run-local-overnight.sh" | wc -l | tr -d ' ')
         if [[ "${count}" -eq 0 ]]; then
-            log "No overnight runner detected — proceeding."
+            log "No overnight runner detected - proceeding."
             return 0
         fi
         log "Overnight runner still running (${count} process(es)). Waiting 60s…"
@@ -164,14 +164,14 @@ while true; do
     score_int=$(echo "${score}" | awk '{printf "%d", $1 * 10}')  # e.g. 9.5 → 95, 10 → 100
     if [[ "${score_int}" -ge 100 ]]; then
         log "════════════════════════════════════════════════════════"
-        log "SUCCESS: Score ${score}/10 — production readiness is 10/10!"
+        log "SUCCESS: Score ${score}/10 - production readiness is 10/10!"
         log "════════════════════════════════════════════════════════"
         exit 0
     fi
 
-    log "Score ${score}/10 — gaps remain. Generating fix queue for round ${ROUND}…"
+    log "Score ${score}/10 - gaps remain. Generating fix queue for round ${ROUND}…"
 
-    # Steps 5–6: generate queue and run fixes
+    # Steps 5-6: generate queue and run fixes
     run_fix_pass "${ROUND}"
 
     ROUND=$((ROUND + 1))

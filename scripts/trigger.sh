@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# trigger.sh — kick off a Local Coder job on demand
+# trigger.sh - kick off a Local Coder job on demand
 #
 # Usage:
 #   ./trigger.sh "task description"  [OPTIONS]
@@ -85,7 +85,7 @@ for t in catalog['tasks']:
     print(f\"  {t['id']:<20} [{model}]  {t['name']}\")
     print(f\"                       {t['description'][:80]}\")
     print()
-" 2>/dev/null || echo "(could not read catalog — install PyYAML: pip install pyyaml)"
+" 2>/dev/null || echo "(could not read catalog - install PyYAML: pip install pyyaml)"
 }
 
 # --------------------------------------------------------------------------
@@ -173,7 +173,7 @@ esac
 # Build env-var overrides via a YAML flags file
 # (--update-env-vars breaks on special chars like [ ] ` in prompt text)
 # --------------------------------------------------------------------------
-# Strip newlines from TASK_PROMPT — Cloud Run env vars must be single-line.
+# Strip newlines from TASK_PROMPT - Cloud Run env vars must be single-line.
 TASK_PROMPT_CLEAN=$(echo "$TASK_PROMPT" | tr '\n' ' ' | sed 's/  */ /g')
 
 # Export into _CC_* namespace so Python reads them safely from os.environ

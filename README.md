@@ -4,7 +4,7 @@ An autonomous coding agent harness built on top of the [Claude CLI](https://docs
 
 This was extracted from a private monorepo and genericized so it can be dropped onto any single-repo or multi-repo project.
 
-> Heads up: this is the "framework" — the scripts, the queue format, the loop. The actual tasks (and your project's conventions) live in your own repo's `CLAUDE.md` and queue YAMLs.
+> Heads up: this is the "framework" - the scripts, the queue format, the loop. The actual tasks (and your project's conventions) live in your own repo's `CLAUDE.md` and queue YAMLs.
 
 ## What it does
 
@@ -46,12 +46,12 @@ bash scripts/board-worker.sh
 ## Repo layout
 
 ```
-scripts/      — runner, board worker, audit, telemetry, watchdog, check-deps
-config/       — config.example.sh, task-catalog.yaml
-queues/       — example queue YAMLs (add your own)
-docs/         — CLAUDE.md (rules the agent reads), runbooks, comparison with Claude Code
-tests/        — unit tests, a fake `claude` CLI, and the end-to-end smoke test
-.github/      — CI workflow (lint, unit, smoke, dash check)
+scripts/      - runner, board worker, audit, telemetry, watchdog, check-deps
+config/       - config.example.sh, task-catalog.yaml
+queues/       - example queue YAMLs (add your own)
+docs/         - CLAUDE.md (rules the agent reads), runbooks, comparison with Claude Code
+tests/        - unit tests, a fake `claude` CLI, and the end-to-end smoke test
+.github/      - CI workflow (lint, unit, smoke, dash check)
 ```
 
 ## Testing the harness

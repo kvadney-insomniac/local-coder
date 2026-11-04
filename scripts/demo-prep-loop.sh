@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# demo-prep-loop.sh — Infinite improvement loop for 5/8 customer demo readiness.
+# demo-prep-loop.sh - Infinite improvement loop for 5/8 customer demo readiness.
 #
 # How it works:
 #   1. Starts at round 87 (rounds 1-86 already completed)
 #   2. Runs run-local-overnight.sh with each round's queue file
 #   3. The last task in every queue (p3-generate-next-round) writes the NEXT
-#      round's queue file — that's what makes this loop infinite
+#      round's queue file - that's what makes this loop infinite
 #   4. After each round completes, increments round counter and waits for
 #      the next queue file to appear (written by the meta-task)
 #   5. Stops automatically on or after 2026-05-08 (post-demo date)
@@ -29,7 +29,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="${REPO_ROOT:?REPO_ROOT must be set — source config/config.sh first}"
+REPO_ROOT="${REPO_ROOT:?REPO_ROOT must be set - source config/config.sh first}"
 OVERNIGHT="${SCRIPT_DIR}/run-local-overnight.sh"
 LOGS_DIR="${SCRIPT_DIR}/logs"
 DEMO_DATE="2026-05-08"
@@ -37,7 +37,7 @@ DEMO_DATE="2026-05-08"
 mkdir -p "${LOGS_DIR}"
 
 # --------------------------------------------------------------------------
-# PID lock — prevent duplicate instances from stacking up as orphans.
+# PID lock - prevent duplicate instances from stacking up as orphans.
 # If another demo-prep-loop is already running, refuse to start.
 # --------------------------------------------------------------------------
 PID_FILE="${LOGS_DIR}/demo-prep-loop.pid"
@@ -64,7 +64,7 @@ _demo_prep_cleanup() {
 }
 trap '_demo_prep_cleanup' EXIT INT TERM HUP
 
-# Starting round — rounds 1-86 are in HARDCODED_SKIP in run-local-overnight.sh
+# Starting round - rounds 1-86 are in HARDCODED_SKIP in run-local-overnight.sh
 # Round 87 is the first new round created by this plan
 START_ROUND="${START_ROUND:-87}"
 
@@ -122,7 +122,7 @@ ROUND="${START_ROUND}"
 LOOP_START=$(date +%s)
 
 log "╔══════════════════════════════════════════════════════════════╗"
-log "║          Demo-Prep Infinite Loop — Starting                  ║"
+log "║          Demo-Prep Infinite Loop - Starting                  ║"
 log "╚══════════════════════════════════════════════════════════════╝"
 log "  Demo date:   ${DEMO_DATE}"
 log "  Start round: ${ROUND}"
@@ -135,7 +135,7 @@ while true; do
     # Stop condition: past demo date
     # ------------------------------------------------------------------
     if past_demo_date; then
-        log "Demo date ${DEMO_DATE} reached — loop complete. Great work!"
+        log "Demo date ${DEMO_DATE} reached - loop complete. Great work!"
         log "Total rounds run: $((ROUND - START_ROUND))"
         exit 0
     fi
@@ -146,7 +146,7 @@ while true; do
     QUEUE_FILE="${SCRIPT_DIR}/overnight-queue-round-${ROUND}.yaml"
 
     if ! wait_for_queue "${QUEUE_FILE}"; then
-        log "FATAL: Could not find queue for round ${ROUND} — exiting."
+        log "FATAL: Could not find queue for round ${ROUND} - exiting."
         log "To continue manually: QUEUE=${QUEUE_FILE} bash ${OVERNIGHT}"
         exit 1
     fi
@@ -154,7 +154,7 @@ while true; do
     # ------------------------------------------------------------------
     # Reset the meta-task in completed.txt so it always re-runs each round.
     # The meta-task id "p3-generate-next-round" is a fixed string shared
-    # across all rounds — without this, it gets skipped after round 1 runs it.
+    # across all rounds - without this, it gets skipped after round 1 runs it.
     # ------------------------------------------------------------------
     COMPLETED_FILE="${LOGS_DIR}/completed.txt"
     if [[ -f "${COMPLETED_FILE}" ]]; then
@@ -169,7 +169,7 @@ while true; do
     # ------------------------------------------------------------------
     ROUND_LOG="${LOGS_DIR}/round-${ROUND}-$(date +%Y%m%d-%H%M%S).log"
     log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    log "ROUND ${ROUND}: Starting — queue: $(basename ${QUEUE_FILE})"
+    log "ROUND ${ROUND}: Starting - queue: $(basename ${QUEUE_FILE})"
     log "  Log: ${ROUND_LOG}"
     log ""
 
@@ -190,7 +190,7 @@ while true; do
         log "ROUND ${ROUND}: Completed successfully in ${ROUND_ELAPSED}min"
     else
         log "ROUND ${ROUND}: Finished with failures (exit ${ROUND_EXIT}) after ${ROUND_ELAPSED}min"
-        log "  Some tasks may have failed — check ${ROUND_LOG}"
+        log "  Some tasks may have failed - check ${ROUND_LOG}"
         log "  Continuing to next round anyway (failures are non-fatal)"
     fi
 
@@ -198,7 +198,7 @@ while true; do
     # Check demo date again before continuing
     # ------------------------------------------------------------------
     if past_demo_date; then
-        log "Demo date reached after round ${ROUND} — stopping."
+        log "Demo date reached after round ${ROUND} - stopping."
         exit 0
     fi
 

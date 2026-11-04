@@ -27,7 +27,7 @@ queue:
     model: claude-opus-5-5
     prompt: |
       Read README.md. Identify and fix any typos or grammatical errors.
-      Do not rewrite content — only correct mistakes. Commit with message:
+      Do not rewrite content - only correct mistakes. Commit with message:
       [local-coder] docs: fix typos in README
 
   - id: example-dead-import

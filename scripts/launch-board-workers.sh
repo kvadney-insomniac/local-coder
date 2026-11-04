@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# launch-board-workers.sh — Launch board-driven local coder workers.
+# launch-board-workers.sh - Launch board-driven local coder workers.
 #
 # Replaces launch-overnight.sh for board-driven mode. Instead of static YAML
 # queues, workers pull tasks directly from the GitHub project board.
@@ -11,12 +11,12 @@
 #   bash scripts/launch-board-workers.sh --status     # show running workers
 #
 # Workers launched:
-#   1. ideas-triage       — Ideas → Backlog (both repos)
-#   2. backlog-backend    — Backlog → implement → PR (backend only)
-#   3. backlog-frontend   — Backlog → implement → PR (frontend only)
-#   4. staging-verifier   — "ui testing in staging" → verify → comment
-#   5. rescue-backend     — In Progress backend PRs with CI-red → fix & push (author-filtered)
-#   6. reap-both          — In Progress orphans (no branch/PR/assignee) → return to Backlog
+#   1. ideas-triage       - Ideas → Backlog (both repos)
+#   2. backlog-backend    - Backlog → implement → PR (backend only)
+#   3. backlog-frontend   - Backlog → implement → PR (frontend only)
+#   4. staging-verifier   - "ui testing in staging" → verify → comment
+#   5. rescue-backend     - In Progress backend PRs with CI-red → fix & push (author-filtered)
+#   6. reap-both          - In Progress orphans (no branch/PR/assignee) → return to Backlog
 #
 # Monitor:
 #   tail -f logs/ideas-triage.log
@@ -67,7 +67,7 @@ fi
 # --------------------------------------------------------------------------
 if pgrep -f "Claude.app" >/dev/null 2>&1; then
     RAM_GB=$(( $(sysctl -n hw.memsize) / 1024 / 1024 / 1024 ))
-    echo "⚠️  Claude Desktop is running — it will compete for RAM with board workers."
+    echo "⚠️  Claude Desktop is running - it will compete for RAM with board workers."
     echo "   On a ${RAM_GB}GB machine, this may cause memory pressure."
     echo "   Consider quitting Claude Desktop before running board workers."
     echo ""
@@ -155,14 +155,14 @@ fi
 # --------------------------------------------------------------------------
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║          Board Workers — Launch                              ║"
+echo "║          Board Workers - Launch                              ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo "  Started:  $(date)"
 echo "  Workers:  ${#WORKER_CONFIGS[@]}"
 echo "  Logs:     ${LOG_DIR}/"
 echo ""
 
-printf "# Board worker PIDs — launched %s\n" "$(date)" > "${PIDS_FILE}"
+printf "# Board worker PIDs - launched %s\n" "$(date)" > "${PIDS_FILE}"
 
 for CONFIG in "${WORKER_CONFIGS[@]}"; do
     NAME="${CONFIG%%:*}"

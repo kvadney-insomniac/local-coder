@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# audit-scan.sh — Run static-analysis tools across backend + frontend and emit a
+# audit-scan.sh - Run static-analysis tools across backend + frontend and emit a
 # unified findings JSON. No GitHub calls, no LLM calls. Pure deterministic scan.
 #
 # Output: $BOARD_LOGS_DIR/audit-findings-YYYYMMDD-HHMMSS.json
@@ -14,7 +14,7 @@
 #     "line":         <int or null>,
 #     "rule":         "<tool-specific rule code, e.g. F401, no-unused-vars>",
 #     "severity":     1..5,   // 5 = highest
-#     "evidence":     "<short snippet — used in dedup fingerprint>",
+#     "evidence":     "<short snippet - used in dedup fingerprint>",
 #     "fingerprint":  "<sha256 hex>"
 #   }
 #
@@ -40,7 +40,7 @@ if [[ -d "${BOARD_BACKEND_DIR}/.venv/bin" ]]; then
 fi
 
 # --------------------------------------------------------------------------
-# Tool availability — degrade gracefully if a tool isn't installed.
+# Tool availability - degrade gracefully if a tool isn't installed.
 # --------------------------------------------------------------------------
 have() { command -v "$1" >/dev/null 2>&1; }
 
@@ -53,7 +53,7 @@ backend_findings="${TMP}/backend.jsonl"
 if [[ -d "${BOARD_BACKEND_DIR}/app" ]]; then
     cd "${BOARD_BACKEND_DIR}"
 
-    # Dead code — vulture. Min confidence 80 keeps noise reasonable.
+    # Dead code - vulture. Min confidence 80 keeps noise reasonable.
     if have vulture; then
         vulture app --min-confidence 80 2>/dev/null \
             | awk -F: 'NF>=3 {
@@ -68,10 +68,10 @@ if [[ -d "${BOARD_BACKEND_DIR}/app" ]]; then
                       rule:"vulture-80", severity:3, evidence:$ev}'
               done >> "${backend_findings}"
     else
-        echo "[audit-scan] vulture not installed — skipping backend dead-code" >&2
+        echo "[audit-scan] vulture not installed - skipping backend dead-code" >&2
     fi
 
-    # Lint smells — ruff. Pick a curated rule set; JSON output is stable.
+    # Lint smells - ruff. Pick a curated rule set; JSON output is stable.
     if have ruff; then
         ruff check app --select F,B,SIM,RUF,PERF,PLW --output-format json 2>/dev/null \
             | jq -c --arg root "${BOARD_BACKEND_DIR}/" '.[] | {
@@ -84,7 +84,7 @@ if [[ -d "${BOARD_BACKEND_DIR}/app" ]]; then
               }' >> "${backend_findings}" 2>/dev/null || true
     fi
 
-    # Incomplete / stubs — TODO/FIXME/HACK/XXX + NotImplementedError. One row per match.
+    # Incomplete / stubs - TODO/FIXME/HACK/XXX + NotImplementedError. One row per match.
     grep -rEn --include='*.py' \
         '(TODO|FIXME|XXX|HACK)[: ]|raise NotImplementedError' app 2>/dev/null \
         | awk -F: '{
@@ -111,7 +111,7 @@ frontend_findings="${TMP}/frontend.jsonl"
 if [[ -d "${BOARD_FRONTEND_DIR}/src" ]]; then
     cd "${BOARD_FRONTEND_DIR}"
 
-    # Dead exports — ts-prune. Available via npx if installed in node_modules.
+    # Dead exports - ts-prune. Available via npx if installed in node_modules.
     if [[ -d node_modules ]] && npx --no-install ts-prune --version >/dev/null 2>&1; then
         npx --no-install ts-prune 2>/dev/null \
             | grep -v ' - used in module$' \
@@ -126,10 +126,10 @@ if [[ -d "${BOARD_FRONTEND_DIR}/src" ]]; then
                       rule:"unused-export", severity:3, evidence:$ev}'
               done >> "${frontend_findings}"
     else
-        echo "[audit-scan] ts-prune not installed (frontend) — skipping" >&2
+        echo "[audit-scan] ts-prune not installed (frontend) - skipping" >&2
     fi
 
-    # ESLint — only if a config exists. Pick the JSON formatter; tolerate non-zero exit.
+    # ESLint - only if a config exists. Pick the JSON formatter; tolerate non-zero exit.
     if [[ -f .eslintrc.json || -f eslint.config.js || -f eslint.config.mjs ]]; then
         npx --no-install eslint src --format json --no-eslintrc=false \
             > "${TMP}/eslint.json" 2>/dev/null || true

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# local-coder-status.sh — view recent Local Coder run summaries from GCS
+# local-coder-status.sh - view recent Local Coder run summaries from GCS
 #
 # Usage:
 #   ./local-coder-status.sh            # show last 10 runs
@@ -28,7 +28,7 @@ d = json.load(sys.stdin)
 status = d.get('status', 'unknown')
 icon = '✓' if status == 'success' else ('⚠' if status == 'no-changes' else '✗')
 print(f\"  {icon} [{d.get('run_id','?')}]\")
-print(f\"    Task:     {d.get('task_type','?')} — {d.get('task_prompt','')[:80]}\")
+print(f\"    Task:     {d.get('task_type','?')} - {d.get('task_prompt','')[:80]}\")
 print(f\"    Repo:     {d.get('repo','?')}  branch: {d.get('work_branch','?')}\")
 print(f\"    Status:   {status}\")
 print(f\"    Duration: {d.get('duration_seconds','?')}s\")

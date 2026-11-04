@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# run-local-overnight.sh — Run overnight queue tasks using the LOCAL claude CLI.
-# Uses the user's Claude Max subscription — no API key or GCP needed.
+# run-local-overnight.sh - Run overnight queue tasks using the LOCAL claude CLI.
+# Uses the user's Claude Max subscription - no API key or GCP needed.
 #
 # Usage:
 #   bash run-local-overnight.sh              # run all remaining tasks sequentially
@@ -29,7 +29,7 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCAL_CODER_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 # REPO_ROOT = the target repo the agent will edit. Set this in config/config.sh.
-REPO_ROOT="${REPO_ROOT:?REPO_ROOT must be set — source config/config.sh first}"
+REPO_ROOT="${REPO_ROOT:?REPO_ROOT must be set - source config/config.sh first}"
 # Allow demo-prep-loop.sh (and other callers) to override the queue file via env var
 QUEUE="${QUEUE:-${LOCAL_CODER_ROOT}/queues/example.yaml}"
 # LOCAL_CODER_LOGS_DIR lets tests and multi-checkout setups keep logs out of the tree.
@@ -68,7 +68,7 @@ _cleanup_orphan_browsers() {
     local chrome_count
     chrome_count=$(pgrep -f "chrome-headless-shell" 2>/dev/null | wc -l | tr -d ' ')
     if [[ "${chrome_count:-0}" -gt 10 ]]; then
-        echo "  ⚠️  Found ${chrome_count} orphaned chrome-headless-shell processes — cleaning up..."
+        echo "  ⚠️  Found ${chrome_count} orphaned chrome-headless-shell processes - cleaning up..."
         pkill -f "chrome-headless-shell" 2>/dev/null || true
         sleep 2
     fi
@@ -92,7 +92,7 @@ _cleanup_orphan_vitest() {
     vitest_count=$(pgrep -c -f 'vitest' 2>/dev/null)
     vitest_count="${vitest_count:-0}"
     if [[ "${vitest_count}" -gt 4 ]]; then
-        echo "  ⚠️  Found ${vitest_count} orphaned vitest processes — cleaning up..."
+        echo "  ⚠️  Found ${vitest_count} orphaned vitest processes - cleaning up..."
         pkill -f vitest 2>/dev/null || true
         sleep 2
     fi
@@ -101,7 +101,7 @@ _cleanup_orphan_vitest
 
 
 # --------------------------------------------------------------------------
-# Playwright global mutex — serializes all Playwright/browser test runs
+# Playwright global mutex - serializes all Playwright/browser test runs
 # across every concurrent local-coder worker on this machine.
 #
 # Root cause: multiple frontend workers running simultaneously each spawn
@@ -119,7 +119,7 @@ _acquire_playwright_lock() {
         local holder="(unknown)"
         [[ -f "${PLAYWRIGHT_LOCK_DIR}/holder" ]] && holder=$(cat "${PLAYWRIGHT_LOCK_DIR}/holder")
         if [[ $waited -eq 0 ]]; then
-            echo "  ⏳ Playwright lock held by ${holder} — waiting (max 90 min)..."
+            echo "  ⏳ Playwright lock held by ${holder} - waiting (max 90 min)..."
         fi
         sleep 30
         waited=$((waited + 30))
@@ -128,13 +128,13 @@ _acquire_playwright_lock() {
             local holder_pid
             holder_pid=$(cat "${PLAYWRIGHT_LOCK_DIR}/holder" | cut -d: -f1)
             if [[ -n "${holder_pid}" ]] && ! kill -0 "${holder_pid}" 2>/dev/null; then
-                echo "  ⚠️  Playwright lock holder PID ${holder_pid} is dead — breaking stale lock"
+                echo "  ⚠️  Playwright lock holder PID ${holder_pid} is dead - breaking stale lock"
                 rm -rf "${PLAYWRIGHT_LOCK_DIR}" 2>/dev/null || true
                 continue
             fi
         fi
         if [[ $waited -gt 5400 ]]; then
-            echo "  ⚠️  Playwright lock wait exceeded 90 min — breaking lock"
+            echo "  ⚠️  Playwright lock wait exceeded 90 min - breaking lock"
             rm -rf "${PLAYWRIGHT_LOCK_DIR}" 2>/dev/null || true
         fi
     done
@@ -157,7 +157,7 @@ _release_playwright_lock() {
 }
 
 # --------------------------------------------------------------------------
-# CPU load gate — don't start a new task if machine is already under load.
+# CPU load gate - don't start a new task if machine is already under load.
 # Prevents cascading slowdowns when multiple workers pile up simultaneously.
 # --------------------------------------------------------------------------
 # Portable helpers: macOS reports through sysctl/vm_stat, Linux through /proc.
@@ -207,19 +207,19 @@ _wait_for_cpu_headroom() {
             break
         fi
         if [[ $waited -eq 0 ]]; then
-            echo "  ⏳ CPU load avg ${load} > threshold ${threshold} (${cores} cores) — waiting for headroom..."
+            echo "  ⏳ CPU load avg ${load} > threshold ${threshold} (${cores} cores) - waiting for headroom..."
         fi
         sleep 30
         waited=$((waited + 30))
         if [[ $waited -gt 600 ]]; then
-            echo "  ⚠️  CPU still loaded after 10 min — proceeding anyway"
+            echo "  ⚠️  CPU still loaded after 10 min - proceeding anyway"
             break
         fi
     done
 }
 
 # --------------------------------------------------------------------------
-# Memory pressure gate — don't start a new task if RAM is nearly exhausted.
+# Memory pressure gate - don't start a new task if RAM is nearly exhausted.
 # Vitest/Node processes accumulating from previous tasks can exhaust memory
 # even when CPU load appears acceptable. Requires 4 GB free+inactive pages
 # before launching the next claude invocation.
@@ -239,7 +239,7 @@ _wait_for_memory_headroom() {
             if [[ $attempt -eq 0 ]]; then
                 echo "  ⚠️  Memory compressor thrashing: ${COMPRESSOR_MB}MB compressed (${TOTAL_MB}MB total RAM)"
                 if pgrep -f "Claude.app" >/dev/null 2>&1; then
-                    echo "  ⚠️  Claude Desktop is running — likely the memory hog. Consider quitting it."
+                    echo "  ⚠️  Claude Desktop is running - likely the memory hog. Consider quitting it."
                 fi
                 _cleanup_orphan_vitest
                 _cleanup_orphan_browsers
@@ -253,17 +253,17 @@ _wait_for_memory_headroom() {
             return 0
         fi
         if [[ $attempt -eq 0 ]]; then
-            echo "  ⏳ Low memory (${AVAIL_MB}MB free+inactive) — waiting for headroom..."
+            echo "  ⏳ Low memory (${AVAIL_MB}MB free+inactive) - waiting for headroom..."
             _cleanup_orphan_vitest
         fi
         sleep 30
         attempt=$((attempt + 1))
     done
-    echo "  ⚠️  Memory pressure persists after 10 min — proceeding anyway"
+    echo "  ⚠️  Memory pressure persists after 10 min - proceeding anyway"
 }
 
 # --------------------------------------------------------------------------
-# Tasks already completed — skip these unconditionally
+# Tasks already completed - skip these unconditionally
 # --------------------------------------------------------------------------
 HARDCODED_SKIP=(
     p1-rate-limit-auth
@@ -282,15 +282,15 @@ HARDCODED_SKIP=(
 # Discipline preamble prepended to every task prompt
 # --------------------------------------------------------------------------
 read -r -d '' PREAMBLE <<'PREAMBLE_EOF' || true
-IMPORTANT RULES FOR THIS TASK — READ BEFORE DOING ANYTHING:
+IMPORTANT RULES FOR THIS TASK - READ BEFORE DOING ANYTHING:
 1. Work on the dev branch directly. Do NOT create worktrees or feature branches.
-2. Do NOT delete or comment-out existing features to fix errors — fix the actual error.
+2. Do NOT delete or comment-out existing features to fix errors - fix the actual error.
 3. Before committing, run the full test suite and verify it passes (no new failures beyond known baseline).
 4. Commit with a clear, accurate message describing what changed and why.
 5. If tests fail due to your changes, fix them before committing. Pre-existing failures (~63 backend) are OK.
 6. Backend test command: cd backend && ${BACKEND_TEST_CMD:-python -m pytest tests/ --tb=short -q}
 7. Frontend test command: cd frontend && npm run build && npm test -- --run
-8. Scope strictly to the task — no speculative refactoring or unrequested features.
+8. Scope strictly to the task - no speculative refactoring or unrequested features.
 
 TASK:
 PREAMBLE_EOF
@@ -404,7 +404,7 @@ for t in tasks:
 # --- Inject meta-task at the very end if missing ---
 # Skip injection when a priority filter is active or round number is unknown.
 if not has_meta and not priority_filter and next_round is not None:
-    # Build prompt with plain string concatenation — no f-strings so this
+    # Build prompt with plain string concatenation - no f-strings so this
     # heredoc stays safe even when bash expansion is active.
     meta_prompt = (
         "You are the continuous improvement loop generator for the YourProject\n"
@@ -414,13 +414,13 @@ if not has_meta and not priority_filter and next_round is not None:
         "- Demo date: 2026-05-08.\n"
         "- This is round " + str(current_round) + ". You are writing round " + str(next_round) + ".\n"
         "- The goal: be fully demo-ready for a real customer by 5/8.\n\n"
-        "CRITICAL RULE — VERIFY BEFORE QUEUING:\n"
+        "CRITICAL RULE - VERIFY BEFORE QUEUING:\n"
         "Do NOT queue a task based on what a previous round's YAML said it would fix.\n"
         "You MUST run the actual commands below and use the LIVE OUTPUT to decide what\n"
-        "still needs work. If a problem is already fixed, do not queue it — that wastes\n"
+        "still needs work. If a problem is already fixed, do not queue it - that wastes\n"
         "a task slot and burns time. Every task you write must target a gap that is\n"
         "CONFIRMED PRESENT in the live output you capture in Step 1.\n\n"
-        "STEP 1 — Capture live state (run ALL of these, record the output):\n"
+        "STEP 1 - Capture live state (run ALL of these, record the output):\n"
         "1. Backend test results:\n"
         "     cd ${REPO_ROOT:-/path/to/your/repo}/backend && \\\n"
         "     ${BACKEND_TEST_CMD:-python -m pytest tests/ --tb=no -q} 2>&1 | tail -5\n"
@@ -440,13 +440,13 @@ if not has_meta and not priority_filter and next_round is not None:
         "5. Completed task IDs:\n"
         "     cat logs/completed.txt\n"
         "   Record: count of completed IDs.\n\n"
-        "STEP 2 — Cross-reference against the previous round:\n"
+        "STEP 2 - Cross-reference against the previous round:\n"
         "Read queues/queue-round-" + str(current_round) + ".yaml.\n"
         "For EACH task in that file: check whether the live output from Step 1 confirms\n"
-        "it is now fixed/done. If it is done, mark it [DONE — skip]. If it is still\n"
-        "present in the live output, mark it [STILL OPEN — consider re-queuing].\n"
+        "it is now fixed/done. If it is done, mark it [DONE - skip]. If it is still\n"
+        "present in the live output, mark it [STILL OPEN - consider re-queuing].\n"
         "Only tasks that are STILL OPEN (or newly discovered) should appear in round " + str(next_round) + ".\n\n"
-        "STEP 3 — Write queues/queue-round-" + str(next_round) + ".yaml.\n"
+        "STEP 3 - Write queues/queue-round-" + str(next_round) + ".yaml.\n"
         "The file MUST:\n"
         "1. Start with a comment header that includes the ACTUAL live metrics from Step 1\n"
         "   (e.g. '# Backend: 2992 passed, 84 failed | Frontend build: 0 warnings | ...')\n"
@@ -612,9 +612,9 @@ ${PROMPT}"
     local ATTEMPT=1
 
     while [[ $ATTEMPT -le $MAX_ATTEMPTS ]]; do
-        # Jitter: 45–135s random delay so simultaneous startup kills don't re-collide
+        # Jitter: 45-135s random delay so simultaneous startup kills don't re-collide
         local JITTER=$(( (RANDOM % 91) + 45 ))
-        [[ $ATTEMPT -gt 1 ]] && echo "  ↻ Retry attempt ${ATTEMPT} (startup kill — waiting ${JITTER}s with jitter to stagger re-attempts)..."
+        [[ $ATTEMPT -gt 1 ]] && echo "  ↻ Retry attempt ${ATTEMPT} (startup kill - waiting ${JITTER}s with jitter to stagger re-attempts)..."
         [[ $ATTEMPT -gt 1 ]] && sleep "${JITTER}"
 
         EXIT_CODE=0
@@ -642,11 +642,11 @@ ${PROMPT}"
         fi
 
         # Startup kill: exit 137 (SIGKILL) with an empty or near-empty log
-        # means the OS killed claude before it could do anything — retry once.
+        # means the OS killed claude before it could do anything - retry once.
         local LOG_LINES
         LOG_LINES=$(wc -l < "${TASK_LOG}" 2>/dev/null || echo 0)
         if [[ "${EXIT_CODE}" -eq 137 ]] && [[ "${LOG_LINES}" -lt 5 ]]; then
-            echo "  ⚠️  Startup kill detected (exit 137, ${LOG_LINES} log lines) — will retry." >> "${TASK_LOG}"
+            echo "  ⚠️  Startup kill detected (exit 137, ${LOG_LINES} log lines) - will retry." >> "${TASK_LOG}"
             ATTEMPT=$((ATTEMPT + 1))
             continue
         fi
@@ -670,7 +670,7 @@ ${PROMPT}"
     # Post-task vitest cleanup: unconditionally kill any vitest workers left
     # behind by this task's claude invocation. Timeout/SIGKILL don't propagate
     # to grandchild node processes. This is safe to do unconditionally because
-    # the Playwright lock above guarantees only one frontend task runs at a time —
+    # the Playwright lock above guarantees only one frontend task runs at a time -
     # there is no concurrent legitimate vitest process to protect here.
     if [[ "${REPO}" == "frontend" ]]; then
         pkill -f vitest 2>/dev/null || true
@@ -683,7 +683,7 @@ ${PROMPT}"
         echo "${TASK_ID}" >> "${COMPLETED_FILE}"
     else
         echo ""
-        echo "  ✗ ${TASK_ID} FAILED (exit ${EXIT_CODE}) after ${ELAPSED}min — continuing to next task"
+        echo "  ✗ ${TASK_ID} FAILED (exit ${EXIT_CODE}) after ${ELAPSED}min - continuing to next task"
         echo "    See: ${TASK_LOG}"
     fi
 
@@ -702,7 +702,7 @@ START_EPOCH=$(date +%s)
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║          Local Coder — Local Overnight Run                   ║"
+echo "║          Local Coder - Local Overnight Run                   ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo "  Started:    $(date)"
 echo "  Queue:      ${QUEUE}"

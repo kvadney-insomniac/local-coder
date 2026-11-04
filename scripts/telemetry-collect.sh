@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# telemetry-collect.sh — Non-invasive board-worker telemetry collector.
+# telemetry-collect.sh - Non-invasive board-worker telemetry collector.
 #
 # Polls the worker logs in logs/ and produces:
-#   - logs/telemetry-snapshot.json  (overwritten — current rollup)
-#   - logs/telemetry-history.csv    (appended — one row per snapshot)
+#   - logs/telemetry-snapshot.json  (overwritten - current rollup)
+#   - logs/telemetry-history.csv    (appended - one row per snapshot)
 #
 # Does NOT wrap the claude CLI. Pure read-only observation. Safe to run on a
 # schedule (launchd StartInterval=300).
 #
 # Per worker we extract from <name>.log:
-#   iter           — count of "Board Worker —" batch starts
-#   done           — sum of "Tasks: N processed" values
-#   idle           — count of batches where Tasks == "0 processed | 0 failed"
-#   productive     — iter - idle
-#   work_min       — sum of "Duration: N min" lines
-#   bytes_in       — size of all task .log files attributable to this worker
+#   iter           - count of "Board Worker -" batch starts
+#   done           - sum of "Tasks: N processed" values
+#   idle           - count of batches where Tasks == "0 processed | 0 failed"
+#   productive     - iter - idle
+#   work_min       - sum of "Duration: N min" lines
+#   bytes_in       - size of all task .log files attributable to this worker
 #                    (rough stdin+stdout byte proxy for Claude Max token burn)
-#   last_seen      — mtime of the worker's main .log
+#   last_seen      - mtime of the worker's main .log
 #
 # Idempotent. Re-running rewrites the snapshot from scratch (no incremental
 # state). The CSV grows monotonically.
@@ -77,7 +77,7 @@ for entry in "${WORKERS[@]}"; do
     last_seen_age=-1
 
     if [[ -f "${WORKER_LOG}" ]]; then
-        iter=$(grep -c "Board Worker — " "${WORKER_LOG}" 2>/dev/null || echo 0)
+        iter=$(grep -c "Board Worker - " "${WORKER_LOG}" 2>/dev/null || echo 0)
         # Sum "  Tasks:     N processed" values
         done=$(grep -E "^  Tasks: +[0-9]+ processed" "${WORKER_LOG}" 2>/dev/null \
             | awk '{s+=$2} END {print s+0}')
@@ -93,7 +93,7 @@ for entry in "${WORKERS[@]}"; do
     [[ $productive -lt 0 ]] && productive=0
 
     # Per-task log files (proxy for claude CLI bytes consumed by this worker).
-    # Worker NAME alone doesn't appear in task labels — task labels are like
+    # Worker NAME alone doesn't appear in task labels - task labels are like
     # backlog-backend-<issue>.log, ideas-backend-<issue>.log, rescue-backend-<issue>.log,
     # verify-backend-<issue>.log. Map worker → label prefix:
     LABEL_PREFIX=""

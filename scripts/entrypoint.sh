@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cloud Run Claude Coder — entrypoint
+# Cloud Run Claude Coder - entrypoint
 #
 # Required env vars:
 #   GITHUB_TOKEN       GitHub PAT (repo + workflow + read:org scopes)
@@ -104,7 +104,7 @@ print(json.dumps({
 trap 'upload_logs "$RUN_STATUS" "$PR_URL"' EXIT
 
 # --------------------------------------------------------------------------
-# Configure git identity — all commits attributed to Local Coder
+# Configure git identity - all commits attributed to Local Coder
 # --------------------------------------------------------------------------
 export GIT_AUTHOR_NAME="Local Coder"
 export GIT_AUTHOR_EMAIL="local-coder@example.com"
@@ -123,7 +123,7 @@ git config --global init.defaultBranch main
 #
 # NOTE: Newer gh CLI versions (2.45+) may exit non-zero when GITHUB_TOKEN is
 # set in env because the credential helper is already configured via the env
-# var. We use || true to handle this gracefully — GITHUB_TOKEN in env is
+# var. We use || true to handle this gracefully - GITHUB_TOKEN in env is
 # sufficient for all git and gh operations regardless.
 gh auth setup-git 2>&1 || true
 
@@ -143,7 +143,7 @@ gh label create "local-coder" \
     --repo "$ORG_REPO" \
     --color "0075ca" \
     --description "Automated PR from Local Coder (Claude on Cloud Run)" \
-    2>/dev/null || true  # idempotent — ignore if already exists
+    2>/dev/null || true  # idempotent - ignore if already exists
 
 # --------------------------------------------------------------------------
 # Clone repo
@@ -218,9 +218,9 @@ if [ "$CLAUDE_EXIT" -ne 0 ]; then
     RUN_STATUS="error"
     if [ -n "$ISSUE_NUMBER" ]; then
         gh issue comment "$ISSUE_NUMBER" --repo "$ORG_REPO" --body \
-"### [local-coder] Task Failed — $RUN_ID
+"### [local-coder] Task Failed - $RUN_ID
 
-**Task:** \`$TASK_TYPE\` — $TASK_PROMPT
+**Task:** \`$TASK_TYPE\` - $TASK_PROMPT
 **Model:** $MODEL | **Branch:** \`$WORK_BRANCH\`
 **Error:** Claude Code exited with status \`$CLAUDE_EXIT\`
 
@@ -234,7 +234,7 @@ fi
 # --------------------------------------------------------------------------
 if [ "$DRY_RUN" = "true" ]; then
     echo ""
-    echo "=== DRY RUN — changes Claude would commit ==="
+    echo "=== DRY RUN - changes Claude would commit ==="
     git status --short || true
     echo ""
     git diff HEAD || true
@@ -250,13 +250,13 @@ fi
 FILES_CHANGED=$(git status --porcelain | wc -l | tr -d ' ')
 
 if [ "$FILES_CHANGED" -eq 0 ]; then
-    echo "No file changes — nothing to commit."
+    echo "No file changes - nothing to commit."
     RUN_STATUS="no-changes"
     if [ -n "$ISSUE_NUMBER" ]; then
         gh issue comment "$ISSUE_NUMBER" --repo "$ORG_REPO" --body \
-"### [local-coder] No Changes — $RUN_ID
+"### [local-coder] No Changes - $RUN_ID
 
-**Task:** \`$TASK_TYPE\` — $TASK_PROMPT
+**Task:** \`$TASK_TYPE\` - $TASK_PROMPT
 **Model:** $MODEL
 
 Claude completed the task but made no file changes." 2>/dev/null || true
@@ -286,7 +286,7 @@ git push origin "$WORK_BRANCH"
 echo "Pushed: $WORK_BRANCH ($FILES_CHANGED files changed)"
 
 # --------------------------------------------------------------------------
-# Git tag — local-coder/YYYY-MM-DD-HHMMSS
+# Git tag - local-coder/YYYY-MM-DD-HHMMSS
 # --------------------------------------------------------------------------
 TAG="local-coder/$(date +%Y-%m-%d-%H%M%S)"
 git tag "$TAG" -m "[local-coder] $TASK_TYPE run $RUN_ID"
@@ -345,10 +345,10 @@ RUN_STATUS="success"
 # --------------------------------------------------------------------------
 if [ -n "$ISSUE_NUMBER" ]; then
     gh issue comment "$ISSUE_NUMBER" --repo "$ORG_REPO" --body \
-"### [local-coder] Task Complete — $RUN_ID
+"### [local-coder] Task Complete - $RUN_ID
 
 **PR:** $PR_URL
-**Task:** \`$TASK_TYPE\` — $TASK_PROMPT
+**Task:** \`$TASK_TYPE\` - $TASK_PROMPT
 **Files changed:** $FILES_CHANGED | **Cost:** $COST_ESTIMATE | **Model:** $MODEL" 2>/dev/null || true
 fi
 

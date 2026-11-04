@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# parallel-loop.sh — Self-perpetuating wrapper for a named queue family.
+# parallel-loop.sh - Self-perpetuating wrapper for a named queue family.
 # Usage: LOOP_NAME=parallel-a bash parallel-loop.sh
 #
 # Looks for overnight-queue-${LOOP_NAME}.yaml, runs it, then waits for
@@ -23,7 +23,7 @@ mkdir -p "${LOGS_DIR}"
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 
 # --------------------------------------------------------------------------
-# PID lock — one instance per LOOP_NAME at a time.
+# PID lock - one instance per LOOP_NAME at a time.
 # Prevents orphan stacking when the same loop is relaunched without killing
 # the previous instance first.
 # --------------------------------------------------------------------------
@@ -88,7 +88,7 @@ SUFFIX="${START_SUFFIX}"  # first queue has no suffix: overnight-queue-parallel-
 
 while true; do
     if [[ "$(date +%Y-%m-%d)" > "${DEMO_DATE}" ]]; then
-        log "Demo date ${DEMO_DATE} reached — stopping loop."
+        log "Demo date ${DEMO_DATE} reached - stopping loop."
         exit 0
     fi
 
@@ -105,7 +105,7 @@ while true; do
         sleep 60; waited=$((waited + 60))
     done
     if [[ ! -f "${QUEUE}" ]]; then
-        log "Queue never appeared — resetting to base queue and retrying."
+        log "Queue never appeared - resetting to base queue and retrying."
         SUFFIX=""
         continue
     fi
@@ -122,7 +122,7 @@ while true; do
     COMPLETED_FILE="${LOGS_DIR}/$(basename "${QUEUE}" .yaml).completed.txt"
     COMPLETED_COUNT=$(wc -l < "${COMPLETED_FILE}" 2>/dev/null || echo 0)
     if [[ "${COMPLETED_COUNT}" -eq 0 ]]; then
-        log "Empty queue — sleeping 300s before checking next."
+        log "Empty queue - sleeping 300s before checking next."
         sleep 300
     fi
 

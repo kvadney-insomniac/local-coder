@@ -26,7 +26,7 @@ tasks:
   # ---- Bugs -------------------------------------------------------------
 
   - id: bug-fixes
-    name: "Bug Fixes (P0–P3)"
+    name: "Bug Fixes (P0-P3)"
     description: >
       Triage open GitHub issues labelled P0, P1, P2, or P3 with label 'bug',
       implement fixes, run tests, and open PRs.
@@ -64,12 +64,12 @@ tasks:
            service files and route files that have no corresponding test file.
            Prioritise: new routes added in the last 30 git commits, services with
            complex branching logic, and any file touched by a recent bug fix.
-        2. Write pytest tests for the top 3–5 most critical gaps. Each test must:
+        2. Write pytest tests for the top 3-5 most critical gaps. Each test must:
            - Use the existing test patterns (SQLite DB, mock external calls).
            - Pass with `# Use your project's test setup 
               pytest --tb=short -q`.
         3. For the frontend: identify API client functions in src/lib/api/ that have
-           no Vitest test and write tests for the top 2–3 gaps.
+           no Vitest test and write tests for the top 2-3 gaps.
         4. Run all new tests to confirm they pass before committing.
 
   # ---- Code Quality -----------------------------------------------------
@@ -115,11 +115,11 @@ tasks:
       Add documentation to undocumented code:
         1. Find Python functions and classes in app/routes/ and app/services/
            that have no docstring (use grep or ast).
-        2. Add Google-style docstrings to the top 15–20 most important ones.
+        2. Add Google-style docstrings to the top 15-20 most important ones.
            Include: one-line summary, Args, Returns, Raises sections where relevant.
         3. For FastAPI routes missing a `description=` or `summary=` parameter in
            their decorator, add one.
-        4. Do NOT change any logic — documentation only.
+        4. Do NOT change any logic - documentation only.
         5. Run `python -m py_compile app/**/*.py` to confirm no syntax errors.
 
   # ---- Dependencies -----------------------------------------------------
@@ -144,9 +144,9 @@ tasks:
           3. Run `pip install -r requirements.txt` then the full test suite to
              confirm nothing broke.
         FRONTEND (package.json):
-          1. Run `npm audit` — fix all critical and high severity issues with
+          1. Run `npm audit` - fix all critical and high severity issues with
              `npm audit fix`.
-          2. Run `npm outdated` — update patch versions of prod dependencies.
+          2. Run `npm outdated` - update patch versions of prod dependencies.
           3. Run `npm run build` to confirm everything still compiles.
         Create a GitHub issue (using `gh issue create`) titled
         "Dependency Audit $(date +%Y-%m-%d)" listing:
@@ -174,7 +174,7 @@ tasks:
         3. If safe auto-fixes exist (adding a missing index, cleaning an orphaned
            column), create a new migration for each fix:
            `PYTHONPATH=. python -m alembic revision -m "cleanup: <description>"`
-        4. Review the generated migration files — do NOT apply (upgrade) in this run.
+        4. Review the generated migration files - do NOT apply (upgrade) in this run.
         5. Write a summary as a GitHub issue titled
            "Migration Cleanup Findings $(date +%Y-%m-%d)" with recommendations.
 
@@ -230,4 +230,4 @@ tasks:
            - Create a GitHub issue titled "Regression Alert $(date +%Y-%m-%d)"
              with the failure list and stack traces.
         5. If zero new regressions: no issue needed, just exit cleanly.
-        6. Do NOT modify any source files in this task — report only.
+        6. Do NOT modify any source files in this task - report only.
