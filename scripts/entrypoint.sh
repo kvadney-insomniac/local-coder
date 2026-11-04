@@ -10,7 +10,7 @@
 #
 # Optional env vars:
 #   TASK_TYPE              ID from task-catalog.yaml (for model/turn selection)
-#   MODEL                  Claude model override (default: claude-opus-4-6)
+#   MODEL                  Claude model override (default: LOCAL_CODER_DEFAULT_MODEL or claude-opus-5-5)
 #   MAX_TURNS              Max agentic turns (default: 50)
 #   TASK_TIMEOUT_SECONDS   Hard wall-clock timeout for the claude invocation (default: 0 = none)
 #   FEATURE_BRANCH         Branch name to create (default: local-coder/YYYYMMDD-HHMMSS)
@@ -31,7 +31,7 @@ set -euo pipefail
 : "${TASK_PROMPT:?TASK_PROMPT is required}"
 
 TASK_TYPE="${TASK_TYPE:-custom}"
-MODEL="${MODEL:-claude-opus-4-6}"
+MODEL="${MODEL:-${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}}"
 MAX_TURNS="${MAX_TURNS:-50}"
 TASK_TIMEOUT_SECONDS="${TASK_TIMEOUT_SECONDS:-0}"
 FEATURE_BRANCH="${FEATURE_BRANCH:-}"

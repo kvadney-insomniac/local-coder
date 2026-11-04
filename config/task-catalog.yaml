@@ -7,12 +7,13 @@
 #   entrypoint.sh                   reads TASK_TYPE to select model/turns
 #
 # Model guidance:
-#   claude-opus-4-6 — all tasks (sonnet credits exhausted week of 2026-05-12)
+#   claude-opus-5-5 for all tasks. Override per task with the model field, or
+#   globally with LOCAL_CODER_DEFAULT_MODEL. See https://code.claude.com/docs/en/model-config
 
 version: "1"
 
 defaults:
-  model: claude-opus-4-6
+  model: claude-opus-5-5
   max_turns: 50
   cpu: "4"
   memory: "8Gi"
@@ -29,7 +30,7 @@ tasks:
     description: >
       Triage open GitHub issues labelled P0, P1, P2, or P3 with label 'bug',
       implement fixes, run tests, and open PRs.
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     max_turns: 60
     cpu: "4"
     memory: "8Gi"
@@ -52,7 +53,7 @@ tasks:
     description: >
       Identify untested or under-tested code paths and write pytest / Vitest tests
       covering them.
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     max_turns: 60
     cpu: "4"
     memory: "8Gi"
@@ -78,7 +79,7 @@ tasks:
     description: >
       Run black, isort, flake8, and mypy on the backend; eslint + prettier on the
       frontend. Fix auto-fixable issues and flag the rest in a GitHub issue.
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     max_turns: 40
     cpu: "2"
     memory: "4Gi"
@@ -105,7 +106,7 @@ tasks:
     description: >
       Add Google-style docstrings to Python functions/classes that lack them,
       and update openapi descriptions where missing.
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     max_turns: 50
     cpu: "2"
     memory: "4Gi"
@@ -128,7 +129,7 @@ tasks:
     description: >
       Check for outdated or vulnerable dependencies; apply safe minor/patch
       updates; create an issue listing anything that needs manual review.
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     max_turns: 40
     cpu: "2"
     memory: "4Gi"
@@ -160,7 +161,7 @@ tasks:
     description: >
       Review the Alembic migrations for unused columns, missing indexes, and
       duplicate/conflicting migrations. Propose and apply safe cleanups.
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     max_turns: 40
     cpu: "2"
     memory: "4Gi"
@@ -184,7 +185,7 @@ tasks:
     description: >
       Identify N+1 query patterns, missing eager-loads, and slow route handlers.
       Fix auto-fixable issues; create issues for complex ones.
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     max_turns: 50
     cpu: "4"
     memory: "8Gi"
@@ -210,7 +211,7 @@ tasks:
     description: >
       Run the full test suite, report new failures vs the baseline, and create
       a GitHub issue if there are regressions.
-    model: claude-opus-4-6
+    model: claude-opus-5-5
     max_turns: 20
     cpu: "2"
     memory: "4Gi"

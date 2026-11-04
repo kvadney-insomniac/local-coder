@@ -73,7 +73,7 @@ npm test -- --run
 
 The `MODEL` environment variable controls which Claude model you run on. Do not attempt to change this from within the agent — it is set externally based on task type.
 
-- `claude-opus-4-6` — used for all tasks (sonnet credits exhausted week of 2026-05-12)
+- Default: `claude-opus-5-5` (override with `LOCAL_CODER_DEFAULT_MODEL`, or per task in the queue YAML). Model IDs and aliases are listed in the Claude Code model configuration docs: https://code.claude.com/docs/en/model-config
 
 ## Cost Awareness
 

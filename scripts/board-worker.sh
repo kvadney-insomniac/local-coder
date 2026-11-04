@@ -166,7 +166,7 @@ If the issue is too ambiguous to triage, post a comment saying so and leave it i
 Otherwise, output exactly: ISSUE_COMPLETE:#${issue_num}"
 
     local task_label="ideas-${repo}-${issue_num}"
-    board_run_claude "${workdir}" "${prompt}" "claude-opus-4-6" "P1" "${task_label}"
+    board_run_claude "${workdir}" "${prompt}" "${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}" "P1" "${task_label}"
     local exit_code=$?
 
     local task_log="${BOARD_LOGS_DIR}/${task_label}.log"
@@ -270,7 +270,7 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>' \\
 15. Output exactly: ISSUE_COMPLETE:#${issue_num}"
 
     local task_label="backlog-${repo}-${issue_num}"
-    board_run_claude "${workdir}" "${prompt}" "claude-opus-4-6" "${priority}" "${task_label}"
+    board_run_claude "${workdir}" "${prompt}" "${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}" "${priority}" "${task_label}"
     local exit_code=$?
 
     local task_log="${BOARD_LOGS_DIR}/${task_label}.log"
@@ -496,7 +496,7 @@ Do NOT use --no-verify.
 Do NOT push to dev or prod directly."
 
     local task_label="rescue-${repo}-${issue_num}"
-    board_run_claude "${workdir}" "${prompt}" "claude-opus-4-6" "P1" "${task_label}"
+    board_run_claude "${workdir}" "${prompt}" "${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}" "P1" "${task_label}"
     local exit_code=$?
 
     local task_log="${BOARD_LOGS_DIR}/${task_label}.log"
@@ -647,7 +647,7 @@ STEP 5 — If FAIL: add label 'staging-fail':
 Output exactly: ISSUE_COMPLETE:#${issue_num}"
 
     local task_label="verify-${repo}-${issue_num}"
-    board_run_claude "${workdir}" "${prompt}" "claude-opus-4-6" "P2" "${task_label}"
+    board_run_claude "${workdir}" "${prompt}" "${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}" "P2" "${task_label}"
     local exit_code=$?
 
     local task_log="${BOARD_LOGS_DIR}/${task_label}.log"

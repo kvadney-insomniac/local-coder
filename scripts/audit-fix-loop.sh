@@ -71,7 +71,7 @@ Commit to dev."
     local output
     output=$(
         cd "${REPO_ROOT}" && \
-        claude --dangerously-skip-permissions --model claude-opus-4-6 \
+        claude --dangerously-skip-permissions --model "${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}" \
             -p "${audit_prompt}" < /dev/null 2>&1
     )
     local exit_code=$?
@@ -120,7 +120,7 @@ Commit to dev."
     local output
     output=$(
         cd "${REPO_ROOT}" && \
-        claude --dangerously-skip-permissions --model claude-opus-4-6 \
+        claude --dangerously-skip-permissions --model "${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}" \
             -p "${queue_prompt}" < /dev/null 2>&1
     )
     local exit_code=$?

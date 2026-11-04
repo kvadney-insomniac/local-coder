@@ -13,7 +13,7 @@
 #                        Shortnames: backend, frontend, devops
 #   --feature <branch>   Feature branch name (default: local-coder/TIMESTAMP)
 #   --issue <number>     GitHub issue number to comment on when done
-#   --model <model>      Override model (default from catalog or claude-opus-4-6)
+#   --model <model>      Override model (default from catalog, LOCAL_CODER_DEFAULT_MODEL, or claude-opus-5-5)
 #   --max-turns <n>      Override max turns (default from catalog or 50)
 #   --install-deps       Install repo deps before running (slower)
 #   --dry-run            Run Claude but skip commit/push/PR
@@ -49,7 +49,7 @@ BRANCH="dev"
 REPO="backend"
 FEATURE_BRANCH=""
 ISSUE_NUMBER=""
-MODEL="claude-opus-4-6"
+MODEL="${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}"
 MAX_TURNS="50"
 TASK_TIMEOUT_SECONDS=""
 INSTALL_DEPS="false"
@@ -81,7 +81,7 @@ catalog = yaml.safe_load(open('${CATALOG}'))
 print('Available task IDs:')
 print('')
 for t in catalog['tasks']:
-    model = t.get('model', 'claude-opus-4-6')
+    model = t.get('model', '${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}')
     print(f\"  {t['id']:<20} [{model}]  {t['name']}\")
     print(f\"                       {t['description'][:80]}\")
     print()

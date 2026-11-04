@@ -520,7 +520,7 @@ BOARD_ACTIVE_CHILD_PID=""
 board_run_claude() {
     local workdir="$1"
     local prompt="$2"
-    local model="${3:-claude-opus-4-6}"
+    local model="${3:-${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}}"
     local priority="${4:-P2}"
     local task_label="${5:-task}"
     local task_log="${BOARD_LOGS_DIR}/${task_label}.log"

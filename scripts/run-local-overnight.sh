@@ -32,8 +32,14 @@ LOCAL_CODER_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REPO_ROOT="${REPO_ROOT:?REPO_ROOT must be set — source config/config.sh first}"
 # Allow demo-prep-loop.sh (and other callers) to override the queue file via env var
 QUEUE="${QUEUE:-${LOCAL_CODER_ROOT}/queues/example.yaml}"
-LOGS_DIR="${LOCAL_CODER_ROOT}/logs"
-TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
+# LOCAL_CODER_LOGS_DIR lets tests and multi-checkout setups keep logs out of the tree.
+LOGS_DIR="${LOCAL_CODER_LOGS_DIR:-${LOCAL_CODER_ROOT}/logs}"
+# Model used when a queue task has no "model" field. Any alias or full model
+# name the claude CLI accepts works here (see docs/COMPARED-TO-CLAUDE-CODE.md).
+DEFAULT_MODEL="${LOCAL_CODER_DEFAULT_MODEL:-claude-opus-5-5}"
+# Set LOCAL_CODER_SKIP_RESOURCE_GATES=1 to bypass the CPU and memory gates
+# (CI runners and tests; never for real overnight runs on a shared laptop).
+SKIP_RESOURCE_GATES="${LOCAL_CODER_SKIP_RESOURCE_GATES:-0}"
 
 # --------------------------------------------------------------------------
 # Cleanup: kill active claude subprocess and temp files on exit/signal.
@@ -47,7 +53,7 @@ _overnight_cleanup() {
         wait "${ACTIVE_CHILD_PID}" 2>/dev/null || true
     fi
     # Clean up any temp prompt files left by this PID
-    rm -f /tmp/claude-prompt-*-$$.txt 2>/dev/null || true
+    rm -f "${TMPDIR:-/tmp}"/claude-prompt-*-$$.txt 2>/dev/null || true
     # Release Playwright lock if we hold it
     _release_playwright_lock
 }
@@ -81,8 +87,11 @@ _cleanup_orphan_browsers
 # --------------------------------------------------------------------------
 _cleanup_orphan_vitest() {
     local vitest_count
-    vitest_count=$(pgrep -c -f 'vitest' 2>/dev/null || echo 0)
-    if [[ "${vitest_count:-0}" -gt 4 ]]; then
+    # pgrep -c prints "0" AND exits 1 when nothing matches, so an "|| echo 0"
+    # fallback would yield "0\n0" and break the arithmetic test below.
+    vitest_count=$(pgrep -c -f 'vitest' 2>/dev/null)
+    vitest_count="${vitest_count:-0}"
+    if [[ "${vitest_count}" -gt 4 ]]; then
         echo "  ⚠️  Found ${vitest_count} orphaned vitest processes — cleaning up..."
         pkill -f vitest 2>/dev/null || true
         sleep 2
@@ -151,16 +160,49 @@ _release_playwright_lock() {
 # CPU load gate — don't start a new task if machine is already under load.
 # Prevents cascading slowdowns when multiple workers pile up simultaneously.
 # --------------------------------------------------------------------------
+# Portable helpers: macOS reports through sysctl/vm_stat, Linux through /proc.
+_cpu_cores() {
+    local n
+    n=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+    echo "${n:-4}"
+}
+
+_load_avg_1min() {
+    local load
+    if [[ -r /proc/loadavg ]]; then
+        load=$(cut -d' ' -f1 /proc/loadavg)
+    else
+        load=$(sysctl -n vm.loadavg 2>/dev/null | awk '{print $2}')
+    fi
+    echo "${load%%.*}"
+}
+
+# Prints "<avail_mb> <total_mb> <compressed_mb>". compressed_mb is 0 on Linux.
+_memory_stats_mb() {
+    if [[ -r /proc/meminfo ]]; then
+        awk '/^MemAvailable:/{a=$2} /^MemTotal:/{t=$2} END{printf "%d %d 0\n", a/1024, t/1024}' /proc/meminfo
+        return
+    fi
+    local free_pages inactive_pages compressor_pages total_bytes
+    free_pages=$(vm_stat 2>/dev/null | awk '/Pages free/{gsub(/\./,"",$3); print $3}')
+    inactive_pages=$(vm_stat 2>/dev/null | awk '/Pages inactive/{gsub(/\./,"",$3); print $3}')
+    compressor_pages=$(vm_stat 2>/dev/null | awk '/stored in compressor/{gsub(/\./,"",$5); print $5}')
+    total_bytes=$(sysctl -n hw.memsize 2>/dev/null || echo 0)
+    echo "$(( (${free_pages:-0} + ${inactive_pages:-0}) * 4096 / 1024 / 1024 )) \
+$(( ${total_bytes:-0} / 1024 / 1024 )) \
+$(( ${compressor_pages:-0} * 4096 / 1024 / 1024 ))"
+}
+
 _wait_for_cpu_headroom() {
+    [[ "${SKIP_RESOURCE_GATES}" == "1" ]] && return 0
     local cores
-    cores=$(sysctl -n hw.ncpu 2>/dev/null || echo 4)
-    # Threshold: load avg > 1.5× core count = saturated (each core has 1.5 tasks)
-    local threshold
-    threshold=$(echo "${cores} * 3 / 2" | bc 2>/dev/null || echo "$(( cores + cores / 2 ))")
+    cores=$(_cpu_cores)
+    # Threshold: load avg > 1.5x core count = saturated (each core has 1.5 tasks)
+    local threshold=$(( cores + cores / 2 ))
     local waited=0
     while true; do
         local load
-        load=$(sysctl -n vm.loadavg 2>/dev/null | awk '{print $2}' | cut -d. -f1)
+        load=$(_load_avg_1min)
         if [[ "${load:-0}" -le "${threshold}" ]]; then
             break
         fi
@@ -183,22 +225,17 @@ _wait_for_cpu_headroom() {
 # before launching the next claude invocation.
 # --------------------------------------------------------------------------
 _wait_for_memory_headroom() {
+    [[ "${SKIP_RESOURCE_GATES}" == "1" ]] && return 0
     local MAX_ATTEMPTS=20
     local attempt=0
     while [[ $attempt -lt $MAX_ATTEMPTS ]]; do
-        local FREE_PAGES INACTIVE_PAGES AVAIL_MB
-        FREE_PAGES=$(vm_stat | awk '/Pages free/{gsub(/\./,"",$3); print $3}')
-        INACTIVE_PAGES=$(vm_stat | awk '/Pages inactive/{gsub(/\./,"",$3); print $3}')
-        AVAIL_MB=$(( (${FREE_PAGES:-0} + ${INACTIVE_PAGES:-0}) * 4096 / 1024 / 1024 ))
+        local AVAIL_MB TOTAL_MB COMPRESSOR_MB
+        read -r AVAIL_MB TOTAL_MB COMPRESSOR_MB < <(_memory_stats_mb)
 
-        # Check compressor thrashing — the real OOM signal on macOS.
+        # Check compressor thrashing, the real OOM signal on macOS.
         # macOS compresses pages aggressively, so free+inactive can look OK
-        # even when the system is in a death spiral.
-        local COMPRESSOR_PAGES TOTAL_MB COMPRESSOR_MB
-        COMPRESSOR_PAGES=$(vm_stat | awk '/stored in compressor/{gsub(/\./,"",$5); print $5}')
-        TOTAL_MB=$(( $(sysctl -n hw.memsize) / 1024 / 1024 ))
-        COMPRESSOR_MB=$(( ${COMPRESSOR_PAGES:-0} * 4096 / 1024 / 1024 ))
-        if [[ "${COMPRESSOR_MB}" -gt $(( TOTAL_MB / 2 )) ]]; then
+        # even when the system is in a death spiral. Linux reports 0 here.
+        if [[ "${TOTAL_MB}" -gt 0 ]] && [[ "${COMPRESSOR_MB}" -gt $(( TOTAL_MB / 2 )) ]]; then
             if [[ $attempt -eq 0 ]]; then
                 echo "  ⚠️  Memory compressor thrashing: ${COMPRESSOR_MB}MB compressed (${TOTAL_MB}MB total RAM)"
                 if pgrep -f "Claude.app" >/dev/null 2>&1; then
@@ -301,15 +338,6 @@ touch "${COMPLETED_FILE}"
 # --------------------------------------------------------------------------
 # Build full skip set: hardcoded + completed.txt + --skip arg
 # --------------------------------------------------------------------------
-build_skip_set() {
-    python3 - <<PYEOF
-import sys
-
-hardcoded = ${HARDCODED_SKIP[@]@Q}  # bash array → not useful directly; read from env below
-PYEOF
-}
-
-# Simpler: build skip set in bash, pass as comma-separated to Python
 ALL_SKIP_CSV=""
 for id in "${HARDCODED_SKIP[@]}"; do
     ALL_SKIP_CSV="${ALL_SKIP_CSV}${id},"
@@ -439,7 +467,7 @@ if not has_meta and not priority_filter and next_round is not None:
         "title":       "Generate overnight-queue-round-" + str(next_round) + ".yaml for continuous loop",
         "prompt":      meta_prompt.strip(),
         "target_repo": "devops",
-        "model":       "claude-opus-4-6",
+        "model":       "${DEFAULT_MODEL}",
         "duration":    20,
     }
     output_tasks.append(injected_meta)
@@ -452,7 +480,7 @@ for t in output_tasks:
         "title":       t["title"],
         "prompt":      t["prompt"].strip(),
         "target_repo": t["target_repo"],
-        "model":       t.get("model", "claude-opus-4-6"),
+        "model":       t.get("model", "${DEFAULT_MODEL}"),
         "duration":    t.get("estimated_duration_minutes", t.get("duration", 30)),
     }
     print(json.dumps(row))
@@ -552,8 +580,8 @@ ${PROMPT}"
     fi
 
     # Write prompt to temp file to avoid shell quoting issues with long strings.
-    # Use task ID + PID for uniqueness — macOS mktemp does not support suffixes after X's.
-    local PROMPT_FILE="/tmp/claude-prompt-${TASK_ID}-$$.txt"
+    # Use task ID + PID for uniqueness: macOS mktemp does not support suffixes after X's.
+    local PROMPT_FILE="${TMPDIR:-/tmp}/claude-prompt-${TASK_ID}-$$.txt"
     printf '%s' "$FULL_PROMPT" > "$PROMPT_FILE"
 
     local TASK_START TASK_END ELAPSED
